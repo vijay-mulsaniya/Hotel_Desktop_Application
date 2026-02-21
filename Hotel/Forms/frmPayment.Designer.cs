@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             panelTop = new Panel();
+            pictureBox1 = new PictureBox();
             lblFormTitle = new Label();
             grdBilling = new DataGridView();
             splitContainer1 = new SplitContainer();
@@ -58,6 +59,7 @@
             label7 = new Label();
             gridRoomDetail = new DataGridView();
             panelTop.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)grdBilling).BeginInit();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
@@ -70,7 +72,8 @@
             // 
             // panelTop
             // 
-            panelTop.BackColor = Color.Teal;
+            panelTop.BackColor = Color.LightSeaGreen;
+            panelTop.Controls.Add(pictureBox1);
             panelTop.Controls.Add(lblFormTitle);
             panelTop.Dock = DockStyle.Top;
             panelTop.Location = new Point(0, 0);
@@ -78,15 +81,24 @@
             panelTop.Size = new Size(1675, 58);
             panelTop.TabIndex = 0;
             // 
+            // pictureBox1
+            // 
+            pictureBox1.Image = Properties.Resources.Money1;
+            pictureBox1.Location = new Point(4, 4);
+            pictureBox1.Name = "pictureBox1";
+            pictureBox1.Size = new Size(50, 50);
+            pictureBox1.TabIndex = 1;
+            pictureBox1.TabStop = false;
+            // 
             // lblFormTitle
             // 
             lblFormTitle.AutoSize = true;
             lblFormTitle.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblFormTitle.Location = new Point(24, 17);
+            lblFormTitle.Location = new Point(58, 18);
             lblFormTitle.Name = "lblFormTitle";
-            lblFormTitle.Size = new Size(98, 25);
+            lblFormTitle.Size = new Size(209, 25);
             lblFormTitle.TabIndex = 0;
-            lblFormTitle.Text = "Payments";
+            lblFormTitle.Text = "Invoice And Payments";
             // 
             // grdBilling
             // 
@@ -385,6 +397,7 @@
             Load += frmPayment_Load;
             panelTop.ResumeLayout(false);
             panelTop.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             ((System.ComponentModel.ISupportInitialize)grdBilling).EndInit();
             splitContainer1.Panel1.ResumeLayout(false);
             splitContainer1.Panel1.PerformLayout();
@@ -435,5 +448,6 @@
         private Label label9;
         private Label lblInvoiceNumber;
         private Button btnShowInvoice;
+        private PictureBox pictureBox1;
     }
 }

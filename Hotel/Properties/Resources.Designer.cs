@@ -63,6 +63,16 @@ namespace Hotel.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Booking {
+            get {
+                object obj = ResourceManager.GetObject("Booking", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Calander {
             get {
                 object obj = ResourceManager.GetObject("Calander", resourceCulture);
@@ -73,9 +83,29 @@ namespace Hotel.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Guest_1 {
+            get {
+                object obj = ResourceManager.GetObject("Guest_1", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Invoice {
             get {
                 object obj = ResourceManager.GetObject("Invoice", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Invoice_3 {
+            get {
+                object obj = ResourceManager.GetObject("Invoice_3", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -116,6 +146,26 @@ namespace Hotel.Properties {
         internal static System.Drawing.Bitmap Report {
             get {
                 object obj = ResourceManager.GetObject("Report", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Time_1 {
+            get {
+                object obj = ResourceManager.GetObject("Time_1", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Time_2 {
+            get {
+                object obj = ResourceManager.GetObject("Time_2", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

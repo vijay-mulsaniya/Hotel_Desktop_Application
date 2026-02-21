@@ -14,15 +14,17 @@ namespace Hotel.Forms
     {
         private readonly IRepository<TblGuest> guestRepository;
         private readonly IRepository<TblAddress> addressRepository;
+        private readonly IRepository<TblCity> cityRepository;
         private List<TblGuest> guestList = new List<TblGuest>();
+        private List<TblCity> cityList = new List<TblCity>();
 
-        public frmGuest(IRepository<TblGuest> guestRepository, IRepository<TblAddress> addressRepository)
+        public frmGuest(IRepository<TblGuest> guestRepository, IRepository<TblAddress> addressRepository, IRepository<TblCity> cityRepository)
         {
             InitializeComponent();
 
             this.guestRepository = guestRepository;
             this.addressRepository = addressRepository;
-
+            this.cityRepository = cityRepository;
         }
 
         private void fillGuestGrid()
@@ -71,12 +73,37 @@ namespace Hotel.Forms
 
             dgvBooking.DataSource = guestList;
         }
-
         private void frmGuest_Load(object sender, EventArgs e)
         {
             fillGuestGrid();
-        }
+            GetCityNames();
 
+            var source = new AutoCompleteStringCollection();
+            source.AddRange(cityList.Select(x => x.CityName).ToArray());
+
+            if (guestList.Any())
+            {
+                var guestSource = new AutoCompleteStringCollection();
+                guestSource.AddRange(guestList.Select(x => x!.FirstName).ToArray()!);
+                txtGuestName.AutoCompleteSource = AutoCompleteSource.CustomSource;
+                txtGuestName.AutoCompleteMode = AutoCompleteMode.Suggest;
+                txtGuestName.AutoCompleteCustomSource = guestSource;
+
+                var mobileSource = new AutoCompleteStringCollection();
+                mobileSource.AddRange(guestList.Select(x => x!.PhoneNumber).ToArray()!);
+                txtMobileNumber.AutoCompleteSource = AutoCompleteSource.CustomSource;
+                txtMobileNumber.AutoCompleteMode = AutoCompleteMode.Suggest;
+                txtMobileNumber.AutoCompleteCustomSource = mobileSource;
+            }
+
+            txtCity.AutoCompleteSource = AutoCompleteSource.CustomSource;
+            txtCity.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            txtCity.AutoCompleteCustomSource = source;
+        }
+        private void GetCityNames()
+        {
+            cityList = cityRepository.GetAll();
+        }
         private void btnGuestSave_Click(object sender, EventArgs e)
         {
             TblGuest guest = new TblGuest
@@ -88,9 +115,7 @@ namespace Hotel.Forms
                 Email = txtEmail.Text,
                 Gender = Gender.Male
             };
-
             guestRepository.Add(guest);
-
 
             TblAddress address = new TblAddress
             {
@@ -108,7 +133,20 @@ namespace Hotel.Forms
             addressRepository.Add(address);
             fillGuestGrid();
             MessageBox.Show("Guest information saved successfully.");
-            groupBox1.Controls.Clear();
+            clearTexBoxes();
+        }
+        private void clearTexBoxes() 
+        {
+            txtMobileNumber.Text = string.Empty;
+            radioButton1.Checked = true;
+            txtGuestName.Text = string.Empty;
+            txtEmail.Text = string.Empty;
+            txtAddress.Text = string.Empty;
+            txtArea.Text = string.Empty;
+            txtCity.Text = string.Empty;
+            txtState.Text = string.Empty;
+            txtCountry.Text = "India";
+            txtPhone2.Text = string.Empty;
             txtMobileNumber.Focus();
         }
     }

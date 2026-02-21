@@ -2,6 +2,7 @@ using Hotel.Data;
 using Hotel.Models;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.DependencyInjection;
+using OfficeOpenXml.Drawing.Style.Coloring;
 using System.Data;
 using System.Windows.Forms;
 
@@ -16,6 +17,19 @@ namespace Hotel.Forms
         {
             InitializeComponent();
             this.serviceProvider = serviceProvider;
+            SetMdiClientBackgroundColor(ColorTranslator.FromHtml("#00bff3")) ;
+        }
+
+        private void SetMdiClientBackgroundColor(System.Drawing.Color color)
+        {
+            foreach (Control ctl in this.Controls)
+            {
+                if (ctl is MdiClient mdiClient)
+                {
+                    mdiClient.BackColor = color;
+                    break; // Exit the loop once the MdiClient control is found and modified
+                }
+            }
         }
 
         private void OpenChild(Form childForm)
@@ -80,7 +94,8 @@ namespace Hotel.Forms
 
         private void btnReports_Click(object sender, EventArgs e)
         {
-
+            var frm = serviceProvider.GetRequiredService<frmPaymentCollectionReport>();
+            OpenChild(frm);
         }
 
         private void btnTransactions_Click(object sender, EventArgs e)

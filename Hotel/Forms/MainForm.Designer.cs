@@ -46,14 +46,14 @@
             menuHelpAbout = new ToolStripMenuItem();
             carCardToolStripMenuItem = new ToolStripMenuItem();
             mainToolStrip = new ToolStrip();
+            btnAddGuest = new ToolStripButton();
             btnMembers = new ToolStripButton();
             btnReceipt = new ToolStripButton();
-            btnReports = new ToolStripButton();
             btnTransactions = new ToolStripButton();
             btnBookNow = new ToolStripButton();
+            btnReports = new ToolStripButton();
             mainStatusStrip = new StatusStrip();
             lblStatus = new ToolStripStatusLabel();
-            btnAddGuest = new ToolStripButton();
             mainMenu.SuspendLayout();
             mainToolStrip.SuspendLayout();
             mainStatusStrip.SuspendLayout();
@@ -171,34 +171,72 @@
             // 
             // mainToolStrip
             // 
-            mainToolStrip.Items.AddRange(new ToolStripItem[] { btnMembers, btnReceipt, btnReports, btnTransactions, btnBookNow, btnAddGuest });
+            mainToolStrip.Items.AddRange(new ToolStripItem[] { btnAddGuest, btnMembers, btnReceipt, btnTransactions, btnBookNow, btnReports });
             mainToolStrip.Location = new Point(0, 24);
             mainToolStrip.Name = "mainToolStrip";
             mainToolStrip.Size = new Size(1164, 57);
             mainToolStrip.TabIndex = 2;
             mainToolStrip.Text = "toolStrip1";
             // 
+            // btnAddGuest
+            // 
+            btnAddGuest.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            btnAddGuest.Image = Properties.Resources.Guest_1;
+            btnAddGuest.ImageScaling = ToolStripItemImageScaling.None;
+            btnAddGuest.ImageTransparentColor = Color.Magenta;
+            btnAddGuest.Name = "btnAddGuest";
+            btnAddGuest.Size = new Size(54, 54);
+            btnAddGuest.Text = "toolStripButton1";
+            btnAddGuest.ToolTipText = "Add Guest Information";
+            btnAddGuest.Click += btnAddGuest_Click;
+            // 
             // btnMembers
             // 
             btnMembers.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            btnMembers.Image = (Image)resources.GetObject("btnMembers.Image");
+            btnMembers.Image = Properties.Resources.Booking;
             btnMembers.ImageScaling = ToolStripItemImageScaling.None;
             btnMembers.ImageTransparentColor = Color.Magenta;
             btnMembers.Name = "btnMembers";
             btnMembers.Size = new Size(54, 54);
-            btnMembers.Text = "Members";
+            btnMembers.Text = "Booking";
+            btnMembers.ToolTipText = "Today's Booking";
             btnMembers.Click += btnMembers_Click;
             // 
             // btnReceipt
             // 
             btnReceipt.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            btnReceipt.Image = (Image)resources.GetObject("btnReceipt.Image");
+            btnReceipt.Image = Properties.Resources.Calander;
             btnReceipt.ImageScaling = ToolStripItemImageScaling.None;
             btnReceipt.ImageTransparentColor = Color.Magenta;
             btnReceipt.Name = "btnReceipt";
             btnReceipt.Size = new Size(54, 54);
-            btnReceipt.Text = "Receipts";
+            btnReceipt.Text = "Date View";
+            btnReceipt.ToolTipText = "Date Wise View";
             btnReceipt.Click += btnReceipt_Click;
+            // 
+            // btnTransactions
+            // 
+            btnTransactions.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            btnTransactions.Image = Properties.Resources.Invoice_3;
+            btnTransactions.ImageScaling = ToolStripItemImageScaling.None;
+            btnTransactions.ImageTransparentColor = Color.Magenta;
+            btnTransactions.Name = "btnTransactions";
+            btnTransactions.Size = new Size(54, 54);
+            btnTransactions.Text = "Invoice";
+            btnTransactions.ToolTipText = "Invoice And Payments";
+            btnTransactions.Click += btnTransactions_Click;
+            // 
+            // btnBookNow
+            // 
+            btnBookNow.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            btnBookNow.Image = Properties.Resources.Time_2;
+            btnBookNow.ImageScaling = ToolStripItemImageScaling.None;
+            btnBookNow.ImageTransparentColor = Color.Magenta;
+            btnBookNow.Name = "btnBookNow";
+            btnBookNow.Size = new Size(54, 54);
+            btnBookNow.Text = "Add Room Booking";
+            btnBookNow.ToolTipText = "New Room Booking";
+            btnBookNow.Click += btnBookNow_Click;
             // 
             // btnReports
             // 
@@ -210,29 +248,6 @@
             btnReports.Size = new Size(54, 54);
             btnReports.Text = "Reports";
             btnReports.Click += btnReports_Click;
-            // 
-            // btnTransactions
-            // 
-            btnTransactions.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            btnTransactions.Image = (Image)resources.GetObject("btnTransactions.Image");
-            btnTransactions.ImageScaling = ToolStripItemImageScaling.None;
-            btnTransactions.ImageTransparentColor = Color.Magenta;
-            btnTransactions.Name = "btnTransactions";
-            btnTransactions.Size = new Size(54, 54);
-            btnTransactions.Text = "Transactions";
-            btnTransactions.Click += btnTransactions_Click;
-            // 
-            // btnBookNow
-            // 
-            btnBookNow.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            btnBookNow.Image = Properties.Resources.Calander;
-            btnBookNow.ImageScaling = ToolStripItemImageScaling.None;
-            btnBookNow.ImageTransparentColor = Color.Magenta;
-            btnBookNow.Name = "btnBookNow";
-            btnBookNow.Size = new Size(54, 54);
-            btnBookNow.Text = "toolStripButton1";
-            btnBookNow.ToolTipText = "Add Booking";
-            btnBookNow.Click += btnBookNow_Click;
             // 
             // mainStatusStrip
             // 
@@ -249,27 +264,18 @@
             lblStatus.Size = new Size(39, 17);
             lblStatus.Text = "Ready";
             // 
-            // btnAddGuest
-            // 
-            btnAddGuest.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            btnAddGuest.Image = Properties.Resources.Member;
-            btnAddGuest.ImageScaling = ToolStripItemImageScaling.None;
-            btnAddGuest.ImageTransparentColor = Color.Magenta;
-            btnAddGuest.Name = "btnAddGuest";
-            btnAddGuest.Size = new Size(54, 54);
-            btnAddGuest.Text = "toolStripButton1";
-            btnAddGuest.ToolTipText = "Add Guest Information";
-            btnAddGuest.Click += btnAddGuest_Click;
-            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
+            BackgroundImage = (Image)resources.GetObject("$this.BackgroundImage");
+            BackgroundImageLayout = ImageLayout.Center;
             ClientSize = new Size(1164, 651);
             Controls.Add(mainStatusStrip);
             Controls.Add(mainToolStrip);
             Controls.Add(mainMenu);
             Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             IsMdiContainer = true;
             MainMenuStrip = mainMenu;
             Name = "MainForm";

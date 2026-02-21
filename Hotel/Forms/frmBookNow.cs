@@ -84,8 +84,8 @@ namespace Hotel.Forms
             var now = SelectedCheckInDate;
 
             dtpFromDateTime.Value = now;
-            dtpToDateTime.Value = now.Date.AddDays(1).AddHours(8).AddMinutes(30);
             dtpToDateTime.MinDate = dtpFromDateTime.Value.AddHours(1); // Minimum checkout time is 1 hour after check-in
+            dtpToDateTime.Value = now.Date.AddDays(1).AddHours(8).AddMinutes(30);
             dtpToDateTime.ValueChanged += (s, e) =>
             {
                 if (dtpToDateTime.Value <= dtpFromDateTime.Value)
@@ -186,8 +186,8 @@ namespace Hotel.Forms
         private List<ListboxItemAvailableRooms> GetAvailableRooms()
         {
 
-            DateTime fromDate = dtpFromDateTime.Value.Date;
-            DateTime toDate = dtpToDateTime.Value.Date; // checkout date (excluded)
+            DateTime fromDate = dtpFromDateTime.Value;
+            DateTime toDate = dtpToDateTime.Value; // checkout date (excluded)
 
             var availableRooms = context.Rooms
                 .Where(r => r.HotelID == HotelID)

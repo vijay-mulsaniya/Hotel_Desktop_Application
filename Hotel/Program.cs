@@ -42,6 +42,7 @@ internal static class Program
                 services.AddTransient<Forms.frmGuest>();
                 services.AddTransient<Forms.frmPayment>();
                 services.AddTransient<FrmDateWiseRoomView>();
+                services.AddTransient<frmPaymentCollectionReport>();
             });
     }
 }

@@ -4,7 +4,6 @@ using Hotel.Dtos.PaymentDtos;
 using Hotel.Forms;
 using Hotel.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Threading;
 
 namespace Hotel.Services
 {
@@ -15,6 +14,7 @@ namespace Hotel.Services
         Task<List<RoomBookingDto>> RoomBookings(int bookingMasterID);
         Task<List<PaymentDetailsDto>> GetPaymentDetails(int bookingMasterID);
         Task<PaymentDetailsDto> AddPayment(PaymentDetailsDto form);
+        Task<PaymentCollectionReportDto> MonthlyPaymentCollectionReport(int month, int year);
     }
     public class PaymentService : IPaymentService
     {
@@ -148,6 +148,47 @@ namespace Hotel.Services
                 PaymentMethod = (PaymentMethod)payment.Method!,
                 OnlineTransactionRefNumber = payment.OnlineTransacionRefNumber
             };
+        }
+        public async Task<PaymentCollectionReportDto> MonthlyPaymentCollectionReport(int month, int year)
+        {
+            var data = await context.Payments.AsNoTracking()
+                        .Include(x => x.Room)
+                        .Include(x => x.BookingMaster).ThenInclude(g => g!.Guest)
+                        .Where(x => x.HotelID == HotelID && x.PaymentDate.Month == month && x.PaymentDate.Year == year)
+                        .OrderBy(x => x.PaymentDate)
+                        .Select(x => new
+                        {
+                           x.PaymentDate.Date.Day,
+                           x.AmountPaid,
+                           x.Room!.RoomNumber,
+                           x.Room.RoomTitle,
+                           x.BookingMaster!.InvoiceNumber,
+                           x.BookingMaster!.Guest!.FirstName
+                        }).ToListAsync();
+
+            var paymentDetail = data.GroupBy(x => x.Day)
+                               .Select(x => new PaymentCollectionReportDetailDto
+                               {
+                                   TitleDate = $"Date: {x.Key}",
+                                   DateTotal = x.Select(x => x.AmountPaid).Sum(),
+                                   DateTable = x.Select(p => new PaymentCollectionReportDateWiseList
+                                   {
+                                       GuestName = p.FirstName,
+                                       InvoiceNumber = p.InvoiceNumber,
+                                       PaymentAmount = p.AmountPaid,
+                                       RoomNumber = p.RoomNumber,
+                                       RoomTitle = p.RoomTitle,
+                                   }).ToList(),
+                               }).ToList();
+
+            PaymentCollectionReportDto result = new PaymentCollectionReportDto
+            {
+                HotelName = "Hotel Comfort",
+                ReportTitle = $"Payment Collection Report - {month} - {year}",
+                ReportTotal = data.Select(x => x.AmountPaid).Sum(),
+                paymentCollectionReportDetails = paymentDetail
+            };
+            return result;
         }
     }
 }
