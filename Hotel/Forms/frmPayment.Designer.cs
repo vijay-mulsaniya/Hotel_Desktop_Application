@@ -111,6 +111,7 @@
             grdBilling.ReadOnly = true;
             grdBilling.Size = new Size(1001, 196);
             grdBilling.TabIndex = 1;
+            grdBilling.CellContentClick += grdBilling_CellContentClick;
             grdBilling.SelectionChanged += grdBilling_SelectionChanged;
             // 
             // splitContainer1

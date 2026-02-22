@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             panelTop = new Panel();
             label1 = new Label();
             label18 = new Label();
@@ -63,7 +63,12 @@
             btnSave = new Button();
             btnCancel = new Button();
             grpBox = new GroupBox();
+            chkInputCreditTax = new CheckBox();
+            chkISTaxInclusive = new CheckBox();
+            chkIsGSTApplicable = new CheckBox();
             gvBooking = new DataGridView();
+            lblGSTPercentage = new Label();
+            label12 = new Label();
             label10 = new Label();
             label11 = new Label();
             panelTop.SuspendLayout();
@@ -78,7 +83,7 @@
             panelTop.Dock = DockStyle.Top;
             panelTop.Location = new Point(0, 0);
             panelTop.Name = "panelTop";
-            panelTop.Size = new Size(1523, 58);
+            panelTop.Size = new Size(1673, 58);
             panelTop.TabIndex = 0;
             // 
             // label1
@@ -173,7 +178,7 @@
             // 
             // btnAddToGrid
             // 
-            btnAddToGrid.Location = new Point(443, 61);
+            btnAddToGrid.Location = new Point(744, 98);
             btnAddToGrid.Name = "btnAddToGrid";
             btnAddToGrid.Size = new Size(129, 24);
             btnAddToGrid.TabIndex = 9;
@@ -187,7 +192,7 @@
             listBox1.Location = new Point(29, 118);
             listBox1.Name = "listBox1";
             listBox1.SelectionMode = SelectionMode.MultiSimple;
-            listBox1.Size = new Size(179, 559);
+            listBox1.Size = new Size(179, 589);
             listBox1.TabIndex = 4;
             listBox1.SelectedIndexChanged += listBox1_SelectedIndexChanged;
             // 
@@ -233,7 +238,7 @@
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(573, 363);
+            label3.Location = new Point(925, 512);
             label3.Name = "label3";
             label3.Size = new Size(80, 15);
             label3.TabIndex = 18;
@@ -242,7 +247,7 @@
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(599, 391);
+            label4.Location = new Point(951, 540);
             label4.Name = "label4";
             label4.Size = new Size(54, 15);
             label4.TabIndex = 19;
@@ -250,7 +255,7 @@
             // 
             // txtDiscount
             // 
-            txtDiscount.Location = new Point(672, 391);
+            txtDiscount.Location = new Point(1011, 536);
             txtDiscount.Name = "txtDiscount";
             txtDiscount.Size = new Size(92, 23);
             txtDiscount.TabIndex = 11;
@@ -261,7 +266,7 @@
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new Point(620, 419);
+            label5.Location = new Point(972, 568);
             label5.Name = "label5";
             label5.Size = new Size(33, 15);
             label5.TabIndex = 20;
@@ -270,7 +275,7 @@
             // label6
             // 
             label6.AutoSize = true;
-            label6.Location = new Point(619, 447);
+            label6.Location = new Point(971, 596);
             label6.Name = "label6";
             label6.Size = new Size(34, 15);
             label6.TabIndex = 21;
@@ -279,7 +284,7 @@
             // label7
             // 
             label7.AutoSize = true;
-            label7.Location = new Point(617, 475);
+            label7.Location = new Point(969, 624);
             label7.Name = "label7";
             label7.Size = new Size(36, 15);
             label7.TabIndex = 22;
@@ -288,7 +293,7 @@
             // label8
             // 
             label8.AutoSize = true;
-            label8.Location = new Point(622, 503);
+            label8.Location = new Point(974, 652);
             label8.Name = "label8";
             label8.Size = new Size(31, 15);
             label8.TabIndex = 23;
@@ -297,7 +302,7 @@
             // label9
             // 
             label9.AutoSize = true;
-            label9.Location = new Point(592, 531);
+            label9.Location = new Point(944, 680);
             label9.Name = "label9";
             label9.Size = new Size(61, 15);
             label9.TabIndex = 24;
@@ -306,7 +311,7 @@
             // lblTotalAmount
             // 
             lblTotalAmount.AutoSize = true;
-            lblTotalAmount.Location = new Point(672, 363);
+            lblTotalAmount.Location = new Point(1011, 508);
             lblTotalAmount.Name = "lblTotalAmount";
             lblTotalAmount.Size = new Size(13, 15);
             lblTotalAmount.TabIndex = 25;
@@ -316,7 +321,7 @@
             // lblTotal
             // 
             lblTotal.AutoSize = true;
-            lblTotal.Location = new Point(672, 425);
+            lblTotal.Location = new Point(1011, 570);
             lblTotal.Name = "lblTotal";
             lblTotal.Size = new Size(13, 15);
             lblTotal.TabIndex = 26;
@@ -326,7 +331,7 @@
             // lblSGST
             // 
             lblSGST.AutoSize = true;
-            lblSGST.Location = new Point(672, 452);
+            lblSGST.Location = new Point(1011, 597);
             lblSGST.Name = "lblSGST";
             lblSGST.Size = new Size(13, 15);
             lblSGST.TabIndex = 27;
@@ -336,7 +341,7 @@
             // lblCGST
             // 
             lblCGST.AutoSize = true;
-            lblCGST.Location = new Point(672, 479);
+            lblCGST.Location = new Point(1011, 624);
             lblCGST.Name = "lblCGST";
             lblCGST.Size = new Size(13, 15);
             lblCGST.TabIndex = 28;
@@ -346,7 +351,7 @@
             // lblIGST
             // 
             lblIGST.AutoSize = true;
-            lblIGST.Location = new Point(672, 506);
+            lblIGST.Location = new Point(1011, 651);
             lblIGST.Name = "lblIGST";
             lblIGST.Size = new Size(13, 15);
             lblIGST.TabIndex = 29;
@@ -357,7 +362,7 @@
             // 
             lblFinalTotal.AutoSize = true;
             lblFinalTotal.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblFinalTotal.Location = new Point(672, 533);
+            lblFinalTotal.Location = new Point(1011, 678);
             lblFinalTotal.Name = "lblFinalTotal";
             lblFinalTotal.Size = new Size(15, 17);
             lblFinalTotal.TabIndex = 30;
@@ -366,7 +371,7 @@
             // 
             // btnSave
             // 
-            btnSave.Location = new Point(443, 527);
+            btnSave.Location = new Point(795, 676);
             btnSave.Name = "btnSave";
             btnSave.Size = new Size(133, 23);
             btnSave.TabIndex = 31;
@@ -376,7 +381,7 @@
             // 
             // btnCancel
             // 
-            btnCancel.Location = new Point(299, 527);
+            btnCancel.Location = new Point(651, 676);
             btnCancel.Name = "btnCancel";
             btnCancel.Size = new Size(133, 23);
             btnCancel.TabIndex = 31;
@@ -386,9 +391,9 @@
             // 
             // grpBox
             // 
-            grpBox.Controls.Add(btnCancel);
-            grpBox.Controls.Add(btnSave);
-            grpBox.Controls.Add(txtDiscount);
+            grpBox.Controls.Add(chkInputCreditTax);
+            grpBox.Controls.Add(chkISTaxInclusive);
+            grpBox.Controls.Add(chkIsGSTApplicable);
             grpBox.Controls.Add(cmbGuests);
             grpBox.Controls.Add(gvBooking);
             grpBox.Controls.Add(lblSelectedRooms);
@@ -398,38 +403,55 @@
             grpBox.Controls.Add(txtPricePerNight);
             grpBox.Controls.Add(label23);
             grpBox.Controls.Add(label22);
-            grpBox.Controls.Add(label8);
-            grpBox.Controls.Add(label7);
-            grpBox.Controls.Add(label6);
-            grpBox.Controls.Add(label5);
-            grpBox.Controls.Add(label4);
-            grpBox.Controls.Add(label9);
-            grpBox.Controls.Add(lblFinalTotal);
-            grpBox.Controls.Add(lblIGST);
-            grpBox.Controls.Add(lblCGST);
-            grpBox.Controls.Add(lblSGST);
-            grpBox.Controls.Add(lblTotal);
-            grpBox.Controls.Add(lblTotalAmount);
-            grpBox.Controls.Add(label3);
             grpBox.Controls.Add(label2);
             grpBox.Controls.Add(label21);
             grpBox.Location = new Point(214, 108);
             grpBox.Name = "grpBox";
-            grpBox.Size = new Size(908, 571);
+            grpBox.Size = new Size(894, 386);
             grpBox.TabIndex = 32;
             grpBox.TabStop = false;
             grpBox.Text = "Detail";
+            // 
+            // chkInputCreditTax
+            // 
+            chkInputCreditTax.AutoSize = true;
+            chkInputCreditTax.Location = new Point(393, 98);
+            chkInputCreditTax.Name = "chkInputCreditTax";
+            chkInputCreditTax.Size = new Size(109, 19);
+            chkInputCreditTax.TabIndex = 32;
+            chkInputCreditTax.Text = "Input Credit Tax";
+            chkInputCreditTax.UseVisualStyleBackColor = true;
+            // 
+            // chkISTaxInclusive
+            // 
+            chkISTaxInclusive.AutoSize = true;
+            chkISTaxInclusive.Location = new Point(241, 98);
+            chkISTaxInclusive.Name = "chkISTaxInclusive";
+            chkISTaxInclusive.Size = new Size(92, 19);
+            chkISTaxInclusive.TabIndex = 32;
+            chkISTaxInclusive.Text = "Tax Inclusive";
+            chkISTaxInclusive.UseVisualStyleBackColor = true;
+            // 
+            // chkIsGSTApplicable
+            // 
+            chkIsGSTApplicable.AutoSize = true;
+            chkIsGSTApplicable.Location = new Point(19, 98);
+            chkIsGSTApplicable.Name = "chkIsGSTApplicable";
+            chkIsGSTApplicable.Size = new Size(117, 19);
+            chkIsGSTApplicable.TabIndex = 32;
+            chkIsGSTApplicable.Text = "Is GST Applicable";
+            chkIsGSTApplicable.UseVisualStyleBackColor = true;
             // 
             // gvBooking
             // 
             gvBooking.AllowUserToAddRows = false;
             gvBooking.AllowUserToDeleteRows = false;
-            dataGridViewCellStyle1.BackColor = Color.FromArgb(224, 224, 224);
-            gvBooking.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle2.BackColor = Color.FromArgb(224, 224, 224);
+            gvBooking.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle2;
             gvBooking.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             gvBooking.BackgroundColor = SystemColors.ControlLight;
             gvBooking.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            gvBooking.Location = new Point(19, 105);
+            gvBooking.Location = new Point(19, 129);
             gvBooking.Name = "gvBooking";
             gvBooking.ReadOnly = true;
             gvBooking.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
@@ -437,6 +459,24 @@
             gvBooking.TabIndex = 10;
             gvBooking.TabStop = false;
             gvBooking.RowsAdded += gvBooking_RowsAdded;
+            // 
+            // lblGSTPercentage
+            // 
+            lblGSTPercentage.AutoSize = true;
+            lblGSTPercentage.Location = new Point(844, 512);
+            lblGSTPercentage.Name = "lblGSTPercentage";
+            lblGSTPercentage.Size = new Size(13, 15);
+            lblGSTPercentage.TabIndex = 18;
+            lblGSTPercentage.Text = "0";
+            // 
+            // label12
+            // 
+            label12.AutoSize = true;
+            label12.Location = new Point(745, 512);
+            label12.Name = "label12";
+            label12.Size = new Size(93, 15);
+            label12.TabIndex = 18;
+            label12.Text = "GST Percentage:";
             // 
             // label10
             // 
@@ -460,16 +500,34 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1523, 700);
+            ClientSize = new Size(1673, 747);
             Controls.Add(grpBox);
             Controls.Add(btnGo);
             Controls.Add(listBox1);
+            Controls.Add(btnCancel);
             Controls.Add(dtpToDateTime);
+            Controls.Add(btnSave);
             Controls.Add(dtpFromDateTime);
+            Controls.Add(txtDiscount);
             Controls.Add(label11);
             Controls.Add(label10);
             Controls.Add(label18);
             Controls.Add(panelTop);
+            Controls.Add(label12);
+            Controls.Add(label3);
+            Controls.Add(lblGSTPercentage);
+            Controls.Add(lblTotalAmount);
+            Controls.Add(lblTotal);
+            Controls.Add(lblSGST);
+            Controls.Add(label8);
+            Controls.Add(lblCGST);
+            Controls.Add(label7);
+            Controls.Add(lblIGST);
+            Controls.Add(label6);
+            Controls.Add(lblFinalTotal);
+            Controls.Add(label5);
+            Controls.Add(label9);
+            Controls.Add(label4);
             Name = "frmBookNow";
             Text = "frmBookNow";
             Load += frmBookNow_Load;
@@ -521,5 +579,10 @@
         private GroupBox grpBox;
         private Label label10;
         private Label label11;
+        private CheckBox chkIsGSTApplicable;
+        private CheckBox chkInputCreditTax;
+        private CheckBox chkISTaxInclusive;
+        private Label lblGSTPercentage;
+        private Label label12;
     }
 }

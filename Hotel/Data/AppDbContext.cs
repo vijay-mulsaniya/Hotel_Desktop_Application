@@ -184,7 +184,6 @@ namespace Hotel.Data
 
             modelBuilder.Entity<TblBookingMaster>(e =>
             {
-
                 e.HasOne(b => b.Guest)
                  .WithMany(bm => bm.BookingMasters)
                  .HasForeignKey(b => b.GuestID)
@@ -195,6 +194,9 @@ namespace Hotel.Data
                  .HasForeignKey(b => b.HotelID)
                  .OnDelete(DeleteBehavior.Restrict);
             });
+
+            modelBuilder.Entity<TblBookingMaster>()
+                .ToTable(tb => tb.HasTrigger("trg_BookingMasters_Audit"));
 
             modelBuilder.Entity<TblRoomBooking>(e =>
             {
@@ -217,6 +219,9 @@ namespace Hotel.Data
                  .WithMany(bm => bm.RoomBookings)
                  .HasForeignKey(rb => rb.BookingMasterID)
                  .OnDelete(DeleteBehavior.Restrict);
+
+                e.ToTable(tb => tb.HasTrigger("Tr_Update_Delete_Bookings"));
+
             });
 
             modelBuilder.Entity<TblPayment>(e =>
@@ -236,6 +241,9 @@ namespace Hotel.Data
                 .HasForeignKey(rb => rb.RoomID)
                 .OnDelete(DeleteBehavior.Restrict);
             });
+
+            modelBuilder.Entity<TblPayment>()
+               .ToTable(tb => tb.HasTrigger("trg_Payments_Audit"));
 
             modelBuilder.Entity<TblFoodMenu>(e =>
             {

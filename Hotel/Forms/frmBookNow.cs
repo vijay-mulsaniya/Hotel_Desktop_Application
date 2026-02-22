@@ -22,12 +22,13 @@ namespace Hotel.Forms
         private readonly IRoomService roomService;
         private readonly AppDbContext context;
         private readonly frmPayment _payment;
+        private readonly IPaymentService paymentService;
         List<TblRoomBooking> roomBookings = new List<TblRoomBooking>();
         BindingList<TblRoomBooking> bookingGridSource = new BindingList<TblRoomBooking>();
         List<ListboxItemAvailableRooms> availableRooms = new List<ListboxItemAvailableRooms>();
         private static int HotelID = 1; // Assuming hotel ID is 1 for this example;
         private static string HotelStateCode = "GJ";
-        private static string GuestStateCode = "GJ";
+       
 
         [Browsable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -40,7 +41,7 @@ namespace Hotel.Forms
         public frmBookNow(IRepository<TblRoomBooking> roomRepository,
             IRepository<TblRoom> repository,
             IRoomService roomService,
-            AppDbContext context, frmPayment payment)
+            AppDbContext context, frmPayment payment, IPaymentService paymentService)
         {
             InitializeComponent();
             dtpFromDateTime.Format = DateTimePickerFormat.Custom;
@@ -54,6 +55,7 @@ namespace Hotel.Forms
             this.roomService = roomService;
             this.context = context;
             _payment = payment;
+            this.paymentService = paymentService;
         }
         private void frmBookNow_Load(object sender, EventArgs e)
         {
@@ -245,13 +247,13 @@ namespace Hotel.Forms
         private void btnAddToGrid_Click(object sender, EventArgs e)
         {
             btnAddToGrid.Enabled = false; // Disable the button to prevent multiple clicks
+            DateTime fromDate = dtpFromDateTime.Value;
+            DateTime toDate = dtpToDateTime.Value;
+            var selectedGuest = cmbGuests.SelectedItem as GuestComboBoxItem;
+            var guestId = selectedGuest != null ? selectedGuest.ID : 0; // Get selected guest ID
+
             foreach (var selectedRoom in listBox1.SelectedItems.Cast<ListboxItemAvailableRooms>())
             {
-                DateTime fromDate = dtpFromDateTime.Value;
-                DateTime toDate = dtpToDateTime.Value;
-                var selectedGuest = cmbGuests.SelectedItem as GuestComboBoxItem;
-                var guestId = selectedGuest != null ? selectedGuest.ID : 0; // Get selected guest ID
-
                 for (DateTime date = fromDate; date.Date < toDate.Date; date = date.AddDays(1))
                 {
                     bookingGridSource.Add(new TblRoomBooking
@@ -288,23 +290,55 @@ namespace Hotel.Forms
             }
 
             CalculateTotals();
+            grpBox.Enabled = false;
             btnSave.Enabled = true;
+            btnCancel.Enabled = true;
         }
 
         private void CalculateTotals()
         {
-            var totalAmount = bookingGridSource.Sum(x => x.Amount);
-            decimal discount = txtDiscount.Text != "" ? Convert.ToDecimal(txtDiscount.Text) : 0;
+            var selectedGuest = cmbGuests.SelectedItem as GuestComboBoxItem;
+            var guestId = selectedGuest != null ? selectedGuest.ID : 0; // Get selected guest ID
+
+            var guestStateCodeAll = paymentService.AllGuestStateCodes();
+            var guestStateCode = guestStateCodeAll.FirstOrDefault(x => x.GuestID == guestId)!.StateCode;
+            bool isGstApplicable = chkIsGSTApplicable.Checked;
+            bool isInterState = "GJ" != guestStateCode;
+            bool isTaxInclusive = chkISTaxInclusive.Checked;
+            decimal gstAmount = 0;
             decimal sGST = 0;
             decimal cGST = 0;
             decimal iGST = 0;
-            decimal finalAmount = totalAmount - discount + sGST + cGST + iGST;
+            decimal totalGST = sGST + cGST + iGST;
+            var grossAmount = bookingGridSource.Sum(x => x.Amount);
+            decimal discount = txtDiscount.Text != "" ? Convert.ToDecimal(txtDiscount.Text) : 0;
+            decimal amountAfterDiscount = grossAmount - discount;
 
-            lblTotalAmount.Text = totalAmount.ToString("C0");
-            lblTotal.Text = (totalAmount - discount).ToString("C0");
-            lblSGST.Text = sGST.ToString("C0");
-            lblCGST.Text = cGST.ToString("C0");
-            lblIGST.Text = iGST.ToString("C0");
+            // Get GST Percentage....
+            decimal perNightAverage = bookingGridSource.Any() ? bookingGridSource.Where(b => b.NightStay == true).Average(rb => rb.Amount) : 0;
+            decimal gstPercentage = 0;
+            if (!isGstApplicable || perNightAverage < 1000)
+                gstPercentage = 0;
+            else if (perNightAverage < 7500)
+                gstPercentage = 12;
+            else
+                gstPercentage = 18;
+
+            // Get GST Amount
+            if (!isGstApplicable || gstPercentage == 0)
+                gstAmount = 0;
+            else
+                gstAmount = isTaxInclusive
+                    ? amountAfterDiscount - (amountAfterDiscount * 100 / (100 + gstPercentage))
+                    : amountAfterDiscount * gstPercentage / 100;
+
+            lblIGST.Text = isInterState ? gstAmount.ToString("C0") : "0";
+            lblCGST.Text = !isInterState ? (gstAmount / 2).ToString("C0") : "0";
+            lblSGST.Text = !isInterState ? (gstAmount / 2).ToString("C0") : "0";
+            lblTotalAmount.Text = grossAmount.ToString("C0");
+            lblTotal.Text = !isTaxInclusive ? (grossAmount - discount).ToString("C0") : (grossAmount - discount - gstAmount).ToString("C0");
+            lblGSTPercentage.Text = gstPercentage.ToString("N2");
+            decimal finalAmount = isTaxInclusive ? amountAfterDiscount : amountAfterDiscount + gstAmount;
             lblFinalTotal.Text = finalAmount.ToString("C0");
         }
         private void txtDiscount_Leave(object sender, EventArgs e)
@@ -318,8 +352,12 @@ namespace Hotel.Forms
             int currentNumber = 0;
             TblTransactionSequence? transactionSequence;
             string invoiceNumber;
+            int guestID = (int)cmbGuests.SelectedValue!;
             var currentDate = DateTime.UtcNow.GetIndianTime();
             roomService.GenerateInvoiceNumber(HotelID, out currentNumber, out transactionSequence, out invoiceNumber);
+
+            var guestStateCodes = paymentService.AllGuestStateCodes();
+            string stateCode = guestStateCodes.FirstOrDefault(x => x.GuestID == guestID)!.StateCode!;
 
             transactionSequence!.LastNumber = currentNumber;
             await roomService.AddNewBooking(new AddNewBookingDto
@@ -334,17 +372,19 @@ namespace Hotel.Forms
                     CheckInDate = dtpFromDateTime.Value,
                     CheckOutDate = dtpToDateTime.Value,
                     Discount = txtDiscount.Text != "" ? Convert.ToDecimal(txtDiscount.Text) : 0,
-                    InputTaxCredit = false,
+                    InputTaxCredit = chkInputCreditTax.Checked,
                     HotelStateCode = HotelStateCode,
-                    GuestStateCode = GuestStateCode,
-                    IsGSTApplicable = false,
-                    IsTaxInclusive = false,
+                    GuestStateCode = stateCode,
+                    IsGSTApplicable = chkIsGSTApplicable.Checked,
+                    IsTaxInclusive = chkISTaxInclusive.Checked,
                     CreatedOn = currentDate,
                     IsActive = true,
                     IsDeleted = false
                 },
                 RoomBookings = bookingGridSource.ToList()
             });
+
+            grpBox.Enabled = true;
 
             clearForm();
             DialogResult result = MessageBox.Show(
@@ -380,6 +420,7 @@ namespace Hotel.Forms
             btnAddToGrid.Enabled = false;
             btnSave.Enabled = false;
             dtpFromDateTime.Focus();
+            grpBox.Enabled = true;
         }
 
         private void gvBooking_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e)

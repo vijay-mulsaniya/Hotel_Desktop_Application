@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using Microsoft.Extensions.Configuration;
+using System.Text.RegularExpressions;
 using TimeZoneConverter;
 
 namespace Hotel.Common
@@ -25,6 +26,18 @@ namespace Hotel.Common
             return TimeZoneInfo.ConvertTimeFromUtc(utcTime, istZone);
 
             //return utcTime.AddHours(5).AddMinutes(30); 
+        }
+
+        public static string GetConnectionString()
+        {
+            // Build the configuration object
+            IConfiguration config = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .Build();
+
+            // Retrieve the connection string by name
+            return config.GetConnectionString("DefaultConnection")!;
         }
     }
 }

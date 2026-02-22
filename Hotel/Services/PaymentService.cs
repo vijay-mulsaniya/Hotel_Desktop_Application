@@ -4,6 +4,7 @@ using Hotel.Dtos.PaymentDtos;
 using Hotel.Forms;
 using Hotel.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Windows.Documents;
 
 namespace Hotel.Services
 {
@@ -15,6 +16,9 @@ namespace Hotel.Services
         Task<List<PaymentDetailsDto>> GetPaymentDetails(int bookingMasterID);
         Task<PaymentDetailsDto> AddPayment(PaymentDetailsDto form);
         Task<PaymentCollectionReportDto> MonthlyPaymentCollectionReport(int month, int year);
+        Task<List<(string stateCode, string stateName)>> GuestStates();
+        List<GuestStateCode> AllGuestStateCodes();
+        Task<bool> EditInvoiceMaster(BillingDto data);
     }
     public class PaymentService : IPaymentService
     {
@@ -36,8 +40,19 @@ namespace Hotel.Services
                                  }).ToListAsync();
 
         }
+        public async Task<List<(string stateCode, string stateName)>> GuestStates()
+        {
+            var states = await context.States
+                               .OrderBy(x => x.StateName)
+                               .Select(x => new { x.StateCode, x.StateName })
+                               .ToListAsync();
+
+            return states.Select(x => (x.StateCode, x.StateName)).ToList();
+        }
         public async Task<List<BillingDto>> BillingGrid()
         {
+            //var guestStateCodes = AllGuestStateCodes();
+
             var data = await context.BookingMasters
                 .AsNoTracking()
                 .Where(b => b.HotelID == HotelID)
@@ -49,9 +64,17 @@ namespace Hotel.Services
                     BillDate = b.CreatedOn ?? DateTime.Now,
                     Discount = b.Discount,
 
+                    GuestID = b.GuestID,
                     GuestName = b.Guest != null
                         ? b.Guest.FirstName + " - Mo: " + b.Guest.PhoneNumber
                         : "Unknown",
+
+                    InputTaxCredit = b.InputTaxCredit,
+                    HotelStateCode = b.HotelStateCode,
+                    GuestStateCode = b.GuestStateCode,
+                    IsGSTApplicable = b.IsGSTApplicable,
+                    IsTaxInclusive = b.IsTaxInclusive,
+                    
 
                     // Let's change how we sum to be more robust
                     Total = b.RoomBookings
@@ -70,9 +93,19 @@ namespace Hotel.Services
             {
                 item.PayableAmount = item.Total - item.Discount;
                 item.Pending = item.PayableAmount - item.Paid;
+                //item.GuestStateCode = guestStateCodes.FirstOrDefault(s => s.GuestID == item.GuestID)!.StateCode!;
             }
 
             return data.OrderByDescending(x => x.BillDate).ToList();
+        }
+        public List<GuestStateCode> AllGuestStateCodes()
+        {
+            return context.Addresses.Select(x => new GuestStateCode
+            {
+                GuestID = x.GuestID ?? 0,
+                State = x.State,
+                StateCode = context.States.FirstOrDefault(s => s.StateName == x.State)!.StateCode
+            }).ToList();
         }
         public async Task<List<RoomBookingDto>> RoomBookings(int bookingMasterID)
         {
@@ -158,12 +191,12 @@ namespace Hotel.Services
                         .OrderBy(x => x.PaymentDate)
                         .Select(x => new
                         {
-                           x.PaymentDate.Date.Day,
-                           x.AmountPaid,
-                           x.Room!.RoomNumber,
-                           x.Room.RoomTitle,
-                           x.BookingMaster!.InvoiceNumber,
-                           x.BookingMaster!.Guest!.FirstName
+                            x.PaymentDate.Date.Day,
+                            x.AmountPaid,
+                            x.Room!.RoomNumber,
+                            x.Room.RoomTitle,
+                            x.BookingMaster!.InvoiceNumber,
+                            x.BookingMaster!.Guest!.FirstName
                         }).ToListAsync();
 
             var paymentDetail = data.GroupBy(x => x.Day)
@@ -190,5 +223,40 @@ namespace Hotel.Services
             };
             return result;
         }
+
+        public async Task<bool> EditInvoiceMaster(BillingDto data)
+        {
+            var invoice = context.BookingMasters.FirstOrDefault(x => x.ID == data.ID);
+            if (invoice == null) throw new Exception("invoice not found or deleted");
+
+            if (invoice.InvoiceNumber != data.InvoiceNumber)
+            {
+                bool otherInvoicewithSameNumber = context.BookingMasters
+                    .Any(x => x.InvoiceNumber!.ToLower().Trim() == data.InvoiceNumber!.ToLower().Trim() && x.ID != invoice.ID);
+
+                if (otherInvoicewithSameNumber)
+                    throw new Exception("Duplicate invoice number not allow");
+            }
+
+            invoice.InvoiceNumber = data.InvoiceNumber;
+            invoice.InvoiceDate = data.BillDate;
+            invoice.Discount = data.Discount;
+            invoice.GuestID = data.GuestID;
+            invoice.GuestStateCode = data.GuestStateCode;
+            invoice.InputTaxCredit = data.InputTaxCredit;
+            invoice.IsGSTApplicable = data.IsGSTApplicable;
+            invoice.IsTaxInclusive = data.IsTaxInclusive;
+
+            context.Update(invoice);
+            await context.SaveChangesAsync();
+            return true;
+        }
+    }
+
+    public class GuestStateCode
+    {
+        public int GuestID { get; set; }
+        public string? State { get; set; }
+        public string? StateCode { get; set; }
     }
 }

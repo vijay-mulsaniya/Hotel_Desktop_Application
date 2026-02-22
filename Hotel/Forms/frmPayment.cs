@@ -3,6 +3,7 @@ using Hotel.Dtos;
 using Hotel.Dtos.PaymentDtos;
 using Hotel.Models;
 using Hotel.Services;
+using Microsoft.Data.SqlClient;
 using System.ComponentModel;
 using System.Data;
 using System.Windows.Forms;
@@ -30,6 +31,7 @@ namespace Hotel.Forms
         {
             InitializeComponent();
             this.paymentService = paymentService;
+            gridRoomDetail.CellContentClick += gridRoomDetail_CellContentClick!;
         }
 
         private async void frmPayment_Load(object sender, EventArgs e)
@@ -52,8 +54,11 @@ namespace Hotel.Forms
             }
         }
 
+        #region Grid Column Generation
+
         private void AddBillingGridColumns()
         {
+            Thread.Sleep(200);
             grdBilling.Columns.Clear();
             grdBilling.RowHeadersVisible = false;
             grdBilling.MultiSelect = false;
@@ -84,9 +89,51 @@ namespace Hotel.Forms
 
             grdBilling.Columns.Add(new DataGridViewTextBoxColumn
             {
+                DataPropertyName = "InvoiceNumber",
+                HeaderText = "Invoice Number",
+                Visible = false
+            });
+
+            grdBilling.Columns.Add(new DataGridViewTextBoxColumn
+            {
                 DataPropertyName = "GuestName",
                 HeaderText = "Guest Name",
                 FillWeight = 280
+            });
+
+            grdBilling.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                DataPropertyName = "GuestStateCode",
+                HeaderText = "Guest State Code",
+                Visible = false
+            });
+
+            grdBilling.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                DataPropertyName = "HotelStateCode",
+                HeaderText = "Hotel State Code",
+                Visible = false
+            });
+
+            grdBilling.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                DataPropertyName = "IsGSTApplicable",
+                HeaderText = "Is GST Applicable",
+                Visible = false
+            });
+
+            grdBilling.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                DataPropertyName = "IsTaxInclusive",
+                HeaderText = "Is Tax Inclusive",
+                Visible = false
+            });
+
+            grdBilling.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                DataPropertyName = "InputTaxCredit",
+                HeaderText = "Input Tax Credit",
+                Visible = false
             });
 
             grdBilling.Columns.Add(new DataGridViewTextBoxColumn
@@ -148,6 +195,24 @@ namespace Hotel.Forms
                     Format = "C0"
                 },
                 SortMode = DataGridViewColumnSortMode.Automatic
+            });
+
+            grdBilling.Columns.Add(new DataGridViewButtonColumn
+            {
+                Name = "colEdit",
+                HeaderText = "Action",
+                Text = "Edit",
+                UseColumnTextForButtonValue = true,
+                FillWeight = 60
+            });
+
+            grdBilling.Columns.Add(new DataGridViewButtonColumn
+            {
+                Name = "colDelete",
+                HeaderText = "Action",
+                Text = "Delete",
+                UseColumnTextForButtonValue = true,
+                FillWeight = 60
             });
 
         }
@@ -261,6 +326,23 @@ namespace Hotel.Forms
                     Format = "C0"
                 },
             });
+
+            gridRoomDetail.Columns.Add(new DataGridViewButtonColumn
+            {
+                Name = "colEdit",
+                HeaderText = "Action",
+                Text = "Edit",
+                UseColumnTextForButtonValue = true,
+                FillWeight = 60
+            });
+            gridRoomDetail.Columns.Add(new DataGridViewButtonColumn
+            {
+                Name = "colDelete",
+                HeaderText = "Action",
+                Text = "Delete",
+                UseColumnTextForButtonValue = true,
+                FillWeight = 60
+            });
         }
         private void AddPaymentGridColumns()
         {
@@ -328,6 +410,65 @@ namespace Hotel.Forms
                 DataPropertyName = "OnlineTransactionRefNumber",
                 HeaderText = "Pay.Rf Number"
             });
+
+            grdPaymentDetail.Columns.Add(new DataGridViewButtonColumn
+            {
+                Name = "colEdit",
+                HeaderText = "Action",
+                Text = "Edit",
+                UseColumnTextForButtonValue = true,
+                FillWeight = 60
+            });
+            grdPaymentDetail.Columns.Add(new DataGridViewButtonColumn
+            {
+                Name = "colDelete",
+                HeaderText = "Action",
+                Text = "Delete",
+                UseColumnTextForButtonValue = true,
+                FillWeight = 60
+            });
+        } 
+        #endregion
+
+        private void DeleteRoomBooking(int id)
+        {
+            string query = "DELETE FROM RoomBookings WHERE ID = @ID";
+
+            using (SqlConnection con = new SqlConnection(CommonMethods.GetConnectionString()))
+            using (SqlCommand cmd = new SqlCommand(query, con))
+            {
+                cmd.Parameters.AddWithValue("@ID", id);
+                con.Open();
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        private void DeleteInvoiceMaster(int id)
+        {
+            string query = @"
+                    DELETE FROM Payments WHERE BookingMasterID = @ID;
+                    DELETE FROM RoomBookings WHERE BookingMasterID = @ID;
+                    DELETE FROM BookingMasters WHERE ID = @ID;";
+
+            using (SqlConnection con = new SqlConnection(CommonMethods.GetConnectionString()))
+            using (SqlCommand cmd = new SqlCommand(query, con))
+            {
+                cmd.Parameters.AddWithValue("@ID", id);
+                try
+                {
+                    con.Open();
+                    using (SqlTransaction transaction = con.BeginTransaction())
+                    {
+                        cmd.Transaction = transaction;
+                        int rowsAffected = cmd.ExecuteNonQuery();
+                        transaction.Commit();
+                    }
+                }
+                catch (SqlException ex)
+                {
+                    MessageBox.Show($"Database error occurred: {ex.Message}", "Delete Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
         }
 
         private async void grdBilling_SelectionChanged(object sender, EventArgs e)
@@ -376,10 +517,10 @@ namespace Hotel.Forms
                 InvoiceNumber = billingSummary.InvoiceNumber!,
                 InvoiceDate = DateTime.Now,
                 GuestName = billingSummary.GuestName,
-               
+
                 HotelName = "Hotel Comfort",
-                HotelStateCode = "GJ", 
-                GuestStateCode = "GJ", 
+                HotelStateCode = "GJ",
+                GuestStateCode = billingSummary.GuestStateCode,
 
                 RoomBookings = roomDetails,
                 Payments = payments,
@@ -479,6 +620,96 @@ namespace Hotel.Forms
 
             var frm = new frmInvoice(invoiceModel);
             frm.ShowDialog();
+        }
+
+        private async void gridRoomDetail_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+
+            var row = gridRoomDetail.Rows[e.RowIndex].DataBoundItem as RoomBookingDto;
+            if (row == null) return;
+
+            string columnName = gridRoomDetail.Columns[e.ColumnIndex].Name;
+
+            // ================= EDIT =================
+            if (columnName == "colEdit")
+            {
+                using (var frm = new FrmRoomBookingEdit(row))
+                {
+                    frm.StartPosition = FormStartPosition.CenterParent;
+
+                    if (frm.ShowDialog() == DialogResult.OK)
+                    {
+                        frmPayment_Load(sender, e);
+                    }
+                }
+            }
+
+            // ================= DELETE =================
+            else if (columnName == "colDelete")
+            {
+                var confirm = MessageBox.Show(
+                    "Are you sure you want to delete this Invoice?,\nAll **Peyments**, and **Room bookings** releated to this invoce will be delted.",
+                    "Confirm Delete",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning);
+
+                if (confirm == DialogResult.Yes)
+                {
+                    DeleteRoomBooking(row.ID);
+                    MessageBox.Show("Deleted Successfully",
+                        "Success",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+
+                    frmPayment_Load(sender, e);
+                }
+            }
+
+        }
+
+        private void grdBilling_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+
+            var row = grdBilling.Rows[e.RowIndex].DataBoundItem as BillingDto;
+            if (row == null) return;
+            string columnName = grdBilling.Columns[e.ColumnIndex].Name;
+
+            if (columnName == "colEdit")
+            {
+                using (var frm = new FrmRoomBookingMasterEdit(paymentService))
+                {
+                    frm.Data = row;
+
+                    if (frm.ShowDialog() == DialogResult.OK)
+                    {
+                        frmPayment_Load(sender, e);
+                    }
+                }
+            }
+
+            else if (columnName == "colDelete")
+            {
+                var confirm = MessageBox.Show(
+                    "Are you sure you want to delete this booking?",
+                    "Confirm Delete",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning);
+
+                if (confirm == DialogResult.Yes)
+                {
+                    DeleteInvoiceMaster(row.ID);
+                    MessageBox.Show("Deleted Successfully",
+                        "Success",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+
+                    frmPayment_Load(sender, e);
+                }
+            }
+
+
         }
     }
 }

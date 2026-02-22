@@ -8,13 +8,20 @@ namespace Hotel.Dtos.PaymentDtos
         public int BookingMasterID { get; set; }
         public string? InvoiceNumber { get; set; }
         public string GuestName { get; set; } = null!;
+        public int GuestID { get; set; }
+        public string GuestStateCode { get; set; } = null!;
         public DateTime BillDate { get; set; }
         public decimal Total { get; set; }
         public decimal Discount { get; set; }
         public decimal PayableAmount { get; set; }
         public decimal Paid { get; set; }
         public decimal Pending { get; set; }
-        
+
+        public bool InputTaxCredit { get; set; }
+        public string HotelStateCode { get; set; } = null!;
+        public bool IsGSTApplicable { get; set; } = false;
+        public bool IsTaxInclusive { get; set; } = false;
+
         //public List<RoomBookingDto> RoomDetails { get; set; } = new List<RoomBookingDto>();
     }
 
