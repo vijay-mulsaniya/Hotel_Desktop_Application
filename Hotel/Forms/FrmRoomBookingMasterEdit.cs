@@ -41,7 +41,6 @@ namespace Hotel.Forms
             chkInputTaxCredit.Checked = _data.InputTaxCredit;
 
         }
-
         private async Task FillStateComboBox()
         {
             var stateData = await paymentService.GuestStates();
@@ -53,7 +52,6 @@ namespace Hotel.Forms
             cmbGuestState.AutoCompleteSource = AutoCompleteSource.ListItems;
             cmbGuestState.SelectedValue = _data.GuestStateCode;
         }
-
         private async Task FillGuestComboBox()
         {
             var guetsList = await paymentService.Guests();
@@ -64,7 +62,6 @@ namespace Hotel.Forms
             cmbGuestList.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             cmbGuestList.AutoCompleteSource = AutoCompleteSource.ListItems;
         }
-
         private async void btnSave_Click(object sender, EventArgs e)
         {
             BillingDto editInvoice = new BillingDto

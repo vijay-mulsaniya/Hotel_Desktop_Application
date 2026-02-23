@@ -40,7 +40,7 @@ namespace Hotel.Dtos
             get
             {
                 var perNightAmount = RoomBookings.Any()
-                    ? RoomBookings.Average(rb => rb.Amount)
+                    ? RoomBookings.Where(b => b.NightStay == true).Average(rb => rb.Amount)
                     : 0;
 
                 if (!IsGSTApplicable) return 0;

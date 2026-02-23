@@ -47,7 +47,7 @@ namespace Hotel.Forms
             {
                 if (Convert.ToInt32(row.Cells[1].Value) == CurrentBookingID)
                 {
-                    grdBilling.CurrentCell = row.Cells[3];
+                    grdBilling.CurrentCell = row.Cells[10]; // any visible cell to select the row....
                     row.Selected = true;
                     break;
                 }
@@ -58,7 +58,6 @@ namespace Hotel.Forms
 
         private void AddBillingGridColumns()
         {
-            Thread.Sleep(200);
             grdBilling.Columns.Clear();
             grdBilling.RowHeadersVisible = false;
             grdBilling.MultiSelect = false;
@@ -82,23 +81,16 @@ namespace Hotel.Forms
 
             grdBilling.Columns.Add(new DataGridViewTextBoxColumn
             {
-                DataPropertyName = "InvoiceNumber",
-                HeaderText = "Invoice Number",
-                Visible = false
-            });
-
-            grdBilling.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                DataPropertyName = "InvoiceNumber",
-                HeaderText = "Invoice Number",
-                Visible = false
-            });
-
-            grdBilling.Columns.Add(new DataGridViewTextBoxColumn
-            {
                 DataPropertyName = "GuestName",
                 HeaderText = "Guest Name",
                 FillWeight = 280
+            });
+
+            grdBilling.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                DataPropertyName = "InvoiceNumber",
+                HeaderText = "Invoice Number",
+                Visible = false
             });
 
             grdBilling.Columns.Add(new DataGridViewTextBoxColumn
@@ -369,8 +361,8 @@ namespace Hotel.Forms
 
             grdPaymentDetail.Columns.Add(new DataGridViewTextBoxColumn
             {
-                DataPropertyName = "RoomBookingID",
-                HeaderText = "RoomBooking ID",
+                DataPropertyName = "RoomID",
+                HeaderText = "Room ID",
                 Visible = false
             });
 
@@ -427,7 +419,7 @@ namespace Hotel.Forms
                 UseColumnTextForButtonValue = true,
                 FillWeight = 60
             });
-        } 
+        }
         #endregion
 
         private void DeleteRoomBooking(int id)
@@ -442,7 +434,6 @@ namespace Hotel.Forms
                 cmd.ExecuteNonQuery();
             }
         }
-
         private void DeleteInvoiceMaster(int id)
         {
             string query = @"
@@ -470,7 +461,18 @@ namespace Hotel.Forms
                 }
             }
         }
+        private void DeletePayments(int id)
+        {
+            string query = "DELETE FROM Payments WHERE ID = @ID";
 
+            using (SqlConnection con = new SqlConnection(CommonMethods.GetConnectionString()))
+            using (SqlCommand cmd = new SqlCommand(query, con))
+            {
+                cmd.Parameters.AddWithValue("@ID", id);
+                con.Open();
+                cmd.ExecuteNonQuery();
+            }
+        }
         private async void grdBilling_SelectionChanged(object sender, EventArgs e)
         {
             await _lock.WaitAsync();
@@ -525,9 +527,9 @@ namespace Hotel.Forms
                 RoomBookings = roomDetails,
                 Payments = payments,
 
-                IsGSTApplicable = true,
-                IsTaxInclusive = false, // Set based on your business logic
-                Discount = 0 // Map if you have a discount field in BillingDto
+                IsGSTApplicable = billingSummary.IsGSTApplicable,
+                IsTaxInclusive = billingSummary.IsTaxInclusive,
+                Discount = billingSummary.Discount 
             };
         }
 
@@ -549,7 +551,6 @@ namespace Hotel.Forms
             cmbRoomNumber.DisplayMember = "DisplayName";
             cmbRoomNumber.ValueMember = "ID";
         }
-
         private void txtSearch_TextChanged(object sender, EventArgs e)
         {
             var filtered = _allBillingData
@@ -559,7 +560,6 @@ namespace Hotel.Forms
 
             grdBilling.DataSource = filtered;
         }
-
         private async void btnAddPayment_Click(object sender, EventArgs e)
         {
             var paymentMethod = cmbPaymentMethod.SelectedItem?.ToString() ?? "Cash";
@@ -609,7 +609,6 @@ namespace Hotel.Forms
                 MessageBox.Show("Failed to add payment. Please try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
         private void btnShowInvoice_Click(object sender, EventArgs e)
         {
             if (invoiceModel == null)
@@ -649,10 +648,10 @@ namespace Hotel.Forms
             else if (columnName == "colDelete")
             {
                 var confirm = MessageBox.Show(
-                    "Are you sure you want to delete this Invoice?,\nAll **Peyments**, and **Room bookings** releated to this invoce will be delted.",
-                    "Confirm Delete",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Warning);
+                     "Are you sure you want to delete this booking?",
+                     "Confirm Delete",
+                     MessageBoxButtons.YesNo,
+                     MessageBoxIcon.Warning);
 
                 if (confirm == DialogResult.Yes)
                 {
@@ -667,7 +666,6 @@ namespace Hotel.Forms
             }
 
         }
-
         private void grdBilling_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
@@ -692,10 +690,10 @@ namespace Hotel.Forms
             else if (columnName == "colDelete")
             {
                 var confirm = MessageBox.Show(
-                    "Are you sure you want to delete this booking?",
-                    "Confirm Delete",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Warning);
+                   "Are you sure you want to delete this Invoice?,\nAll **Peyments**, and **Room bookings** releated to this invoce will be delted.",
+                   "Confirm Delete",
+                   MessageBoxButtons.YesNo,
+                   MessageBoxIcon.Warning);
 
                 if (confirm == DialogResult.Yes)
                 {
@@ -709,6 +707,48 @@ namespace Hotel.Forms
                 }
             }
 
+
+        }
+        private void grdPaymentDetail_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+
+            var row = grdPaymentDetail.Rows[e.RowIndex].DataBoundItem as PaymentDetailsDto;
+            if (row == null) return;
+            string columnName = grdPaymentDetail.Columns[e.ColumnIndex].Name;
+
+            if (columnName == "colEdit")
+            {
+                using (var frm = new FrmPaymentEdit(paymentService))
+                {
+                    frm.Data = row;
+
+                    if (frm.ShowDialog() == DialogResult.OK)
+                    {
+                        frmPayment_Load(sender, e);
+                    }
+                }
+            }
+
+            else if (columnName == "colDelete")
+            {
+                var confirm = MessageBox.Show(
+                    "Are you sure you want to delete this booking?",
+                    "Confirm Delete",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning);
+
+                if (confirm == DialogResult.Yes)
+                {
+                    DeletePayments(row.ID);
+                    MessageBox.Show("Deleted Successfully",
+                        "Success",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+
+                    frmPayment_Load(sender, e);
+                }
+            }
 
         }
     }

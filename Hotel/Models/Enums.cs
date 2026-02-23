@@ -1,4 +1,6 @@
-﻿namespace Hotel.Models
+﻿using System.ComponentModel;
+
+namespace Hotel.Models
 {
     public enum RoomType
     {
@@ -41,9 +43,16 @@
     }
     public enum PaymentMethod
     {
+        [Description("Cash Payment")]
         Cash = 1,
+
+        [Description("Credit Card")]
         CreditCard = 2,
+
+        [Description("Debit Card")]
         DebitCard = 3,
+
+        [Description("Online Payment")]
         OnlinePayment = 4
     }
 

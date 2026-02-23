@@ -1,26 +1,8 @@
 ﻿using Hotel.Common;
-using Hotel.Data;
 using Hotel.Dtos;
-using Hotel.Models;
 using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Data.Common;
-using System.Drawing;
-using System.Reflection.Metadata;
-using System.Text;
-using System.Windows.Forms;
-using Vijay.DataAccess.Interfaces;
-using Vijay.DataAccess.Models;
-using Vijay.DataAccess.Services;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Hotel.Forms
 {
@@ -35,11 +17,17 @@ namespace Hotel.Forms
             InitializeComponent();
             _booking = booking;
             _connectionString = CommonMethods.GetConnectionString();
+            cmbRoomNumbers.SelectedIndexChanged += CheckForChanges;
+            dtpDate.ValueChanged += CheckForChanges;
+            chkNightStay.CheckedChanged += CheckForChanges;
+            txtAdultCount.TextChanged += CheckForChanges;
+            txtChildCount.TextChanged += CheckForChanges;
+            txtAmount.TextChanged += CheckForChanges;
         }
 
         private void FrmRoomBookingEdit_Load(object sender, EventArgs e)
         {
-            roomList = GetAvailableRooms();
+            roomList = GetAvailableRooms(_booking.RoomID);
 
             dtpDate.Format = DateTimePickerFormat.Custom;
             dtpDate.CustomFormat = "dd/MM/yyyy hh:mm tt";
@@ -50,7 +38,7 @@ namespace Hotel.Forms
             dtpToDate.Format = DateTimePickerFormat.Custom;
             dtpToDate.CustomFormat = "dd/MM/yyyy hh:mm tt";
 
-            var roomSource = roomList.Select(r => new
+            var roomSource = roomList.Select(r => new 
             {
                 r.ID,
                 DisplayName = $"{r.RoomNumber} - {r.RoomTitle}"
@@ -83,13 +71,6 @@ namespace Hotel.Forms
             txtAmount.Text = _booking.Amount.ToString();
 
             btnSave.Enabled = false;
-
-            cmbRoomNumbers.SelectedIndexChanged += CheckForChanges;
-            dtpDate.ValueChanged += CheckForChanges;
-            chkNightStay.CheckedChanged += CheckForChanges;
-            txtAdultCount.TextChanged += CheckForChanges;
-            txtChildCount.TextChanged += CheckForChanges;
-            txtAmount.TextChanged += CheckForChanges;
 
             ResetFromToDate();
         }
@@ -134,20 +115,31 @@ namespace Hotel.Forms
 
         private void CheckForChanges(object? sender, EventArgs e)
         {
+            if (_booking == null) return;
+
+            // 1. Handle the ComboBox Safely
+            var selectedRoomId = (cmbRoomNumbers.SelectedItem as dynamic)?.ID;
+
+            // 2. Parse Numeric Strings to avoid "100" vs "100.00" mismatches
+            int.TryParse(txtAdultCount.Text, out int currentAdults);
+            int.TryParse(txtChildCount.Text, out int currentChildren);
+            decimal.TryParse(txtAmount.Text, out decimal currentAmount);
+
+            // 3. The Comparison Logic
             bool isChanged =
-                (int?)cmbRoomNumbers.SelectedValue != _booking.RoomID ||
-                dtpDate.Value != _booking.Date ||
+                selectedRoomId != _booking.RoomID ||
+                dtpDate.Value != _booking.Date || 
                 chkNightStay.Checked != _booking.NightStay ||
-                txtAdultCount.Text != _booking.AdultCount.ToString() ||
-                txtAmount.Text != _booking.Amount.ToString();
+                currentAdults != _booking.AdultCount ||
+                currentChildren != _booking.ChildCount ||
+                currentAmount != _booking.Amount;
 
             btnSave.Enabled = isChanged;
         }
 
-        private List<(int ID, string? RoomNumber, string? RoomTitle)> GetAvailableRooms()
+        private List<(int ID, string? RoomNumber, string? RoomTitle)> GetAvailableRooms(int ID)
         {
-            SqlParameter parameter = new SqlParameter("@date", dtpDate.Value.Date);
-            string query = @"SELECT 
+            string query = @"SELECT distinct 
                                 R.ID, 
                                 R.RoomNumber, 
                                 R.RoomTitle
@@ -155,11 +147,12 @@ namespace Hotel.Forms
                             LEFT JOIN RoomBookings RB 
                                 ON R.ID = RB.RoomID 
                                 AND CAST(RB.Date AS DATE) = @date
-                            WHERE RB.RoomID IS NULL;";
+                            WHERE RB.RoomID IS NULL OR R.ID = @ID;"; //
 
             SqlConnection con = new SqlConnection(_connectionString);
             SqlCommand cmd = new SqlCommand(query, con);
-            cmd.Parameters.Add(parameter);
+            cmd.Parameters.AddWithValue("@date", dtpDate.Value.Date);
+            cmd.Parameters.AddWithValue("@ID", ID);
             using (SqlDataAdapter da = new SqlDataAdapter(cmd))
             {
                 DataSet dataSet = new DataSet();
@@ -251,7 +244,7 @@ namespace Hotel.Forms
             chkNightStay.Text = nightChecked;
             if (chkNightStay.Checked == false)
             {
-                txtAmount.Text = "0";
+                txtAmount.Text = "0.00";
                 txtAmount.Enabled = false;
             }
             else

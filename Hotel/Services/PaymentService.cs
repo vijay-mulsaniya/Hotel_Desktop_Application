@@ -1,4 +1,5 @@
-﻿using Hotel.Data;
+﻿using Hotel.Common;
+using Hotel.Data;
 using Hotel.Dtos;
 using Hotel.Dtos.PaymentDtos;
 using Hotel.Forms;
@@ -19,6 +20,8 @@ namespace Hotel.Services
         Task<List<(string stateCode, string stateName)>> GuestStates();
         List<GuestStateCode> AllGuestStateCodes();
         Task<bool> EditInvoiceMaster(BillingDto data);
+        Task<bool> EditPayments(PaymentDetailsDto data);
+        Task<List<ListboxItemAvailableRooms>> RoomsByInvoice(int invoiceID);
     }
     public class PaymentService : IPaymentService
     {
@@ -148,6 +151,7 @@ namespace Hotel.Services
                     PaymentMethod = (PaymentMethod)p.Method!,
                     OnlineTransactionRefNumber = p.OnlineTransacionRefNumber,
                     RoomNumber = p.Room!.RoomNumber,
+                    RoomID = p.RoomID,
                     InvoiceNumber = p.BookingMaster!.InvoiceNumber
                 }).ToListAsync();
 
@@ -223,7 +227,6 @@ namespace Hotel.Services
             };
             return result;
         }
-
         public async Task<bool> EditInvoiceMaster(BillingDto data)
         {
             var invoice = context.BookingMasters.FirstOrDefault(x => x.ID == data.ID);
@@ -246,11 +249,45 @@ namespace Hotel.Services
             invoice.InputTaxCredit = data.InputTaxCredit;
             invoice.IsGSTApplicable = data.IsGSTApplicable;
             invoice.IsTaxInclusive = data.IsTaxInclusive;
+            invoice.UpdatedOn = DateTime.UtcNow.GetIndianTime();
 
             context.Update(invoice);
             await context.SaveChangesAsync();
             return true;
         }
+        public async Task<bool> EditPayments(PaymentDetailsDto data)
+        {
+            var payment = context.Payments.FirstOrDefault(x => x.ID == data.ID);
+            if (payment == null) throw new Exception("Payment not found or deleted");
+
+            payment.AmountPaid = data.Amount;
+            payment.PaymentDate = data.PaymentDate;
+            payment.Method = data.PaymentMethod;
+            payment.OnlineTransacionRefNumber = data.OnlineTransactionRefNumber;
+            payment.UpdatedOn = DateTime.UtcNow.GetIndianTime();
+
+            context.Update(payment);
+            await context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<List<ListboxItemAvailableRooms>> RoomsByInvoice(int invoiceID)
+        {
+            var allrooms = await RoomBookings(invoiceID);
+            var distinctRooms = allrooms
+                                 .GroupBy(x => new { x.RoomID, x.RoomNumber, x.RoomTitle })
+                                 .Select(g => new ListboxItemAvailableRooms
+                                 {
+                                     ID = g.Key.RoomID,
+                                     RoomNumber = g.Key.RoomNumber,
+                                     DisplayName = g.Key.RoomNumber + " - " + g.Key.RoomTitle,
+                                     IsCheckoutToday = false
+                                 })
+                                 .OrderBy(r => r.RoomNumber)
+                                 .ToList();
+            return distinctRooms;
+        }
+
     }
 
     public class GuestStateCode

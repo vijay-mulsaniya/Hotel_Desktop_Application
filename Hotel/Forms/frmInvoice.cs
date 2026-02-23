@@ -55,7 +55,7 @@ namespace Hotel.Forms
                        .Replace("{{InvoiceDate}}", dto.InvoiceDate.ToString("dd-MMM-yyyy"))
                        .Replace("{{RoomRows}}", rowsHtml.ToString())
                        .Replace("{{GSTPercentage}}", dto.GSTPercentage.ToString())
-                       .Replace("{{TaxableAmount}}", dto.TaxableAmount.ToString("N2"))
+                       .Replace("{{TaxableAmount}}", dto.AmountAfterDiscount.ToString("N2"))
                        .Replace("{{GSTAmount}}", dto.GSTAmount.ToString("N2"))
                        .Replace("{{NetPayable}}", dto.NetPayableAmount.ToString("N2"));
 
@@ -79,6 +79,12 @@ namespace Hotel.Forms
             }
 
             decimal totalPayments = 0;
+            decimal grossAmount = dto.GrossAmount;
+            if (dto.IsTaxInclusive)
+            {
+                grossAmount = dto.GrossAmount - dto.GSTAmount;
+            }
+
             StringBuilder paymentRows = new StringBuilder();
             foreach (var p in dto.Payments)
             {
@@ -179,7 +185,7 @@ namespace Hotel.Forms
             <table class='footer-table'>
                 <tr>
                     <td colspan='3' style='text-align:right;'>Gross Amount:</td>
-                    <td style='text-align:right;'>{dto.GrossAmount:N2}</td>
+                    <td style='text-align:right;'>{grossAmount:N2}</td>
                 </tr>
                 <tr>
                     <td colspan='3' style='text-align:right;'>Discount:</td>

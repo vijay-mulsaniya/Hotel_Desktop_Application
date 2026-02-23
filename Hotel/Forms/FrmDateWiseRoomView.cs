@@ -26,8 +26,8 @@ namespace Hotel.Forms
             this.roomService = roomService;
             this.serviceProvider = serviceProvider;
             this.mainForm = mainForm;
-            dtpFromDate.Value = DateTime.Now.Date.AddDays(-10);
-            dtpTodate.Value = DateTime.Now.Date.Date.AddDays(15);
+            dtpFromDate.Value = DateTime.Now.Date.AddDays(-5);
+            dtpTodate.Value = DateTime.Now.Date.Date.AddDays(20);
             mainPanel.FlowDirection = FlowDirection.TopDown;
         }
 

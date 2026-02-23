@@ -356,6 +356,7 @@
             grdPaymentDetail.ReadOnly = true;
             grdPaymentDetail.Size = new Size(790, 485);
             grdPaymentDetail.TabIndex = 2;
+            grdPaymentDetail.CellContentClick += grdPaymentDetail_CellContentClick;
             // 
             // label8
             // 

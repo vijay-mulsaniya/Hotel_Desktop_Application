@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using System.ComponentModel;
 using System.Text.RegularExpressions;
 using TimeZoneConverter;
 
@@ -26,6 +27,15 @@ namespace Hotel.Common
             return TimeZoneInfo.ConvertTimeFromUtc(utcTime, istZone);
 
             //return utcTime.AddHours(5).AddMinutes(30); 
+        }
+
+        public static string GetEnumDescription(Enum value)
+        {
+            var field = value.GetType().GetField(value.ToString());
+            var attribute = field?.GetCustomAttributes(typeof(DescriptionAttribute), false)
+                                  .FirstOrDefault() as DescriptionAttribute;
+
+            return attribute != null ? attribute.Description : value.ToString();
         }
 
         public static string GetConnectionString()

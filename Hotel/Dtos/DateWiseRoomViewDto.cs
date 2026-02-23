@@ -24,7 +24,10 @@ namespace Hotel.Dtos
         public bool IsBooked { get; set; }
         public Color BackgoundColor
         {
-            get => IsBooked ? Color.LightGray : Color.LightGreen;
+            get => IsBooked ? Color.LightGray 
+                            :  DateLabel == DateTime.Now.Day.ToString() 
+                               ? Color.Green 
+                               : Color.LightGreen;
         }
         public string? GuestName { get; set; }
         public DateTime? BoxDate { get; set; }
