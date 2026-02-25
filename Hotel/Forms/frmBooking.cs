@@ -30,22 +30,21 @@ namespace Hotel.Forms
         }
         private void LoadRooms()
         {
-            flowLayoutPanel1.SuspendLayout(); // Stop layout logic to increase speed
+            flowLayoutPanel1.SuspendLayout();
             flowLayoutPanel1.Controls.Clear();
 
             var roomData = GetRooms(dtpDate.Value);
 
-            // Update Header Stats
             lblAvailableTotal.Text = roomData.AvailableRooms.ToString();
             lblBookedTotal.Text = roomData.BookedRooms.ToString();
             lblTotalRooms.Text = roomData.TotalRooms.ToString();
             lblAsOn.Text = roomData.Daytype;
 
-            // Loop through all rooms
             foreach (var room in roomData.RoomList)
             {
-                // The IsCheckOutCard logic is now driven by the DTO we optimized earlier
-                bool isCheckingOutToday = room.CheckOutDate?.Date == dtpDate.Value.Date;
+                bool isCheckingOutToday = room.IsCheckOutCard;
+                bool isDirty = room.IsDirty;
+                bool lateCheckout = room.IsLateCheckout;
 
                 if (!room.IsAvailable)
                 {
@@ -72,82 +71,36 @@ namespace Hotel.Forms
                     var availCard = new HotelRoomAvailable(serviceProvider, mainForm)
                     {
                         RoomId = room.ID,
+                        BookingMasterID = room.BookingMasterId,
                         RoomNumber = room.RoomNumber!,
                         RoomTitle = room.RoomTitle!,
+                        IsDirty = isDirty,
+                        IsLateCheckout = lateCheckout,
+
                         Capacity = room.Capacity,
                         ChargesPerNight = room.Charges,
                         IsCheckOutCard = isCheckingOutToday,
+                        GuestName = (isCheckingOutToday || isDirty) ? room.GuestName! : "",
                         SelectedCheckInDate = lblAsOn.Text == "Today"
                             ? DateTime.Now
                             : dtpDate.Value.Date.AddHours(9)
                     };
-                    // Set the category color
+
+                    availCard.OnStatusChanged += (s, e) => LoadRooms();
                     availCard.BackColor = setBackground(room.RoomTitle!);
+
                     flowLayoutPanel1.Controls.Add(availCard);
                 }
             }
 
-            flowLayoutPanel1.ResumeLayout(); // Refresh layout all at once
+            flowLayoutPanel1.ResumeLayout();
         }
-        //private void LoadRooms()
-        //{
-        //    flowLayoutPanel1.SuspendLayout(); // Stop layout logic to increase speed
-        //    flowLayoutPanel1.Controls.Clear();
-
-        //    var roomData = GetRooms(dtpDate.Value);
-        //    var allRooms = roomData.RoomList;
-        //    lblAvailableTotal.Text = roomData.AvailableRooms.ToString();
-        //    lblBookedTotal.Text = roomData.BookedRooms.ToString();
-        //    lblTotalRooms.Text = roomData.TotalRooms.ToString();
-        //    lblAsOn.Text = roomData.Daytype;
-
-        //    foreach (var titleCount in roomData.RoomStatusByTitle)
-        //    {
-        //        string count = $"Booked {titleCount.BookedCount} of {titleCount.TotalCount}";
-
-        //        if (titleCount.Title == "Deluxe Room")
-        //            lblDeluxeTotal.Text = count;
-        //        else if (titleCount.Title == "Standard Room")
-        //            lblStandardRoomCount.Text = count;
-        //        else if (titleCount.Title == "Dormitory")
-        //            lblDormatryCount.Text = count;
-        //    }
-
-        //    foreach (var room in allRooms)
-        //    {
-        //        RoomCard card = new RoomCard();
-        //        card.RoomId = room.ID;
-        //        card.RoomNumber = room.RoomNumber!;
-        //        card.RoomTitle = room.RoomTitle ?? "";
-        //        card.PricePerNight = room.Charges;
-        //        card.Capacity = room.Capacity;
-        //        card.IsAvailable = room.IsAvailable;
-        //        card.CheckInDate = dtpDate.Value.Date.AddHours(8);
-        //        card.IsCheckOutCard = room.CheckOutDate?.Date == dtpDate.Value.Date;
-
-        //        if (!room.IsAvailable)
-        //        {
-        //            card.GuestName = room.GuestName!;
-        //            card.CheckInDate = room.CheckInDate!.Value;
-        //            card.CheckOutDate = room.CheckOutDate!.Value;
-        //            card.PersonCount = room.PersonCount;
-        //            card.NightCount = room.Nights;
-        //            card.TotalAmount = room.TotalCharges;
-        //            card.PaidAmount = room.PaidAmount;
-        //            card.PendingAmount = room.DueAmount;
-        //            card.BookingMasterId = room.BookingMasterId;
-        //        }
-        //        Debug.WriteLine($"Room {room.RoomNumber} CheckoutFlag: {room.IsCheckOutCard}");
-        //        AddRoom(card);
-        //    }
-
-        //    flowLayoutPanel1.ResumeLayout(); // Refresh layout all at once
-        //}
 
         private RoomStatusAllDto GetRooms(DateTime selectedDate)
         {
             var dateOnly = selectedDate.Date;
             var yesterday = dateOnly.AddDays(-1);
+            TimeSpan checkoutDeadline = new TimeSpan(0, 10, 0);
 
             var relevantBookings = context.RoomBookings
             .Where(rb => rb.HotelID == HotelID &&
@@ -157,10 +110,13 @@ namespace Hotel.Forms
                     .Select(rb => new
                     {
                         rb.RoomID,
-                        rb.Date, // To distinguish between today's guest and yesterday's guest
+                        Date = rb.Date!.Value.Date,
                         rb.Amount,
                         rb.AdultCount,
                         rb.ChildCount,
+                        rb.IsCheckedOut,
+                        rb.IsCleaned,
+                        rb.BookingMasterID,
                         GuestName = rb.Guest != null ? rb.Guest.FirstName : "",
                         Master = rb.BookingMaster,
                         LastNightDate = rb.BookingMaster!.RoomBookings
@@ -178,43 +134,20 @@ namespace Hotel.Forms
 
             var roomList = allRooms.Select(x =>
             {
-                var stayedLastNight = relevantBookings.FirstOrDefault(b => b.RoomID == x.ID && b.Date!.Value.Date == yesterday);
-                var stayingTonight = relevantBookings.FirstOrDefault(b => b.RoomID == x.ID && b.Date!.Value.Date == dateOnly);
+                var stayedLastNight = relevantBookings.FirstOrDefault(b => b.RoomID == x.ID && b.Date.Date == yesterday);
+                var stayingTonight = relevantBookings.FirstOrDefault(b => b.RoomID == x.ID && b.Date.Date == dateOnly);
 
-                bool isCheckingOutToday = false;
-                if (stayedLastNight != null)
-                {
-                    // If they stayed last night (25th) but are NOT staying tonight (26th), 
-                    // they are definitely checking out today.
-                    if (stayingTonight == null)
-                    {
-                        isCheckingOutToday = true;
-                    }
-                    // OR: If your 'LastNightDate' logic confirms their stay ends this morning
-                    else if (stayedLastNight.LastNightDate!.Value.Date == yesterday)
-                    {
-                        isCheckingOutToday = true;
-                    }
-                }
+                bool isCheckingOutToday = (stayedLastNight != null) && (stayingTonight == null) && (!stayedLastNight.IsCheckedOut);
+                bool isDirty = stayedLastNight != null && stayedLastNight.IsCheckedOut && !stayedLastNight.IsCleaned;
                 var displayBooking = stayingTonight ?? stayedLastNight;
-
-                if (displayBooking != null)
+                bool isLate = false;
+                if (isCheckingOutToday && dateOnly == DateTime.UtcNow.GetIndianTime().Date)
                 {
-                    var checkoutDate = displayBooking.LastNightDate!.Value.Date.AddDays(1);
-                    isCheckingOutToday = checkoutDate == dateOnly;
+                    if (DateTime.UtcNow.GetIndianTime().TimeOfDay > checkoutDeadline)
+                    {
+                        isLate = true;
+                    }
                 }
-
-                //bookingsAtDate.TryGetValue(x.ID, out var booking);
-
-                //// 2. Calculate Dynamic Checkout: MaxDate + 1 Day + 08:30 AM
-                //DateTime? dynamicCheckout = null;
-                //if (booking?.LastNightDate != null)
-                //{
-                //    dynamicCheckout = booking.LastNightDate.Value.Date
-                //                        .AddDays(1)
-                //                        .AddHours(8)
-                //                        .AddMinutes(30);
-                //}
 
                 return new BookedRoomDto
                 {
@@ -224,20 +157,19 @@ namespace Hotel.Forms
                     RoomTitle = x.RoomTitle,
                     RoomType = GetRoomTypeString(x.RoomType),
                     IsAvailable = stayingTonight == null,
+                    IsCheckOutCard = isCheckingOutToday,
+                    IsDirty = isDirty,
+                    IsLateCheckout = isLate,
 
-                    // Booking Details
                     GuestName = displayBooking?.GuestName,
                     CheckInDate = displayBooking?.Master?.CheckInDate,
-
-                    // Apply the dynamic checkout here
                     CheckOutDate = displayBooking?.LastNightDate!.Value.Date.AddDays(1).AddHours(8).AddMinutes(30),
-
                     PersonCount = displayBooking != null ? $"A: {displayBooking.AdultCount}, C: {displayBooking.ChildCount}" : "",
                     Nights = displayBooking?.NightCount ?? 0,
                     BookingMasterId = displayBooking?.Master?.ID ?? 0,
                     TotalCharges = displayBooking?.TotalBookingAmount ?? 0,
                     PaidAmount = displayBooking?.PaidAmount ?? 0,
-                    FoodCharges = 0
+                    FoodCharges = 0,
                 };
             }).ToList();
 
@@ -268,7 +200,7 @@ namespace Hotel.Forms
             _ => "Unknown"
         };
 
-        void AddRoom(RoomCard card)
+        private void AddRoom(RoomCard card)
         {
             if (!card.IsAvailable)
             {
@@ -316,6 +248,11 @@ namespace Hotel.Forms
         }
 
         private void btnRefresh_Click(object sender, EventArgs e)
+        {
+            LoadRooms();
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
         {
             LoadRooms();
         }

@@ -191,7 +191,9 @@ namespace Hotel.Models
         public int ChildCount { get; set; } = 0;
         public decimal Amount { get; set; } = 0M;
         public decimal TaxPercentage { get; set; } = 0M;
-
+        public bool IsCheckedOut { get; set; } = false;
+        public DateTime? ActualCheckOutTime { get; set; }
+        public bool IsCleaned { get; set; } = true; 
         public TblHotel? Hotel { get; set; }
         public TblRoom? Room { get; set; }
         public TblGuest? Guest { get; set; }

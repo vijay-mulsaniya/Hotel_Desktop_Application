@@ -308,29 +308,29 @@ namespace Hotel.Forms
                 }
             }
 
-            string query2 = @"Insert into RoomBookings(HotelID, BookingMasterID, RoomID, GuestID, Date, NightStay, AdultCount, ChildCount, Amount, Status, IsActive, IsDeleted, CreatedOn)
-                               values (@HotelID, @BookingMasterID, @RoomID, @GuestID, @Date, @NightStay, @AdultCount, @ChildCount, @Amount, @Status, @IsActive, @IsDeleted, @CreatedOn);";
+            //string query2 = @"Insert into RoomBookings(HotelID, BookingMasterID, RoomID, GuestID, Date, NightStay, AdultCount, ChildCount, Amount, Status, IsActive, IsDeleted, CreatedOn)
+            //                   values (@HotelID, @BookingMasterID, @RoomID, @GuestID, @Date, @NightStay, @AdultCount, @ChildCount, @Amount, @Status, @IsActive, @IsDeleted, @CreatedOn);";
 
-            using (SqlConnection con = new SqlConnection(_connectionString))
-            using (SqlCommand cmd = new SqlCommand(query2, con))
-            {
-                cmd.Parameters.AddWithValue("@HotelID", 1);
-                cmd.Parameters.AddWithValue("@BookingMasterID", _booking.BookingMasterID);
-                cmd.Parameters.AddWithValue("@RoomID", cmbRoomNumbersExtend.SelectedValue);
-                cmd.Parameters.AddWithValue("@GuestID", _booking.GuestID);
-                cmd.Parameters.AddWithValue("@Date", dtpToDate.Value);
-                cmd.Parameters.AddWithValue("@NightStay", false);
-                cmd.Parameters.AddWithValue("@Status", 1);
-                cmd.Parameters.AddWithValue("@AdultCount", txtAdultsExtend.Text);
-                cmd.Parameters.AddWithValue("@ChildCount", txtChildExtend.Text);
-                cmd.Parameters.AddWithValue("@Amount", 0);
-                cmd.Parameters.AddWithValue("@IsActive", true);
-                cmd.Parameters.AddWithValue("@IsDeleted", false);
-                cmd.Parameters.AddWithValue("@CreatedOn", DateTime.UtcNow.GetIndianTime());
+            //using (SqlConnection con = new SqlConnection(_connectionString))
+            //using (SqlCommand cmd = new SqlCommand(query2, con))
+            //{
+            //    cmd.Parameters.AddWithValue("@HotelID", 1);
+            //    cmd.Parameters.AddWithValue("@BookingMasterID", _booking.BookingMasterID);
+            //    cmd.Parameters.AddWithValue("@RoomID", cmbRoomNumbersExtend.SelectedValue);
+            //    cmd.Parameters.AddWithValue("@GuestID", _booking.GuestID);
+            //    cmd.Parameters.AddWithValue("@Date", dtpToDate.Value);
+            //    cmd.Parameters.AddWithValue("@NightStay", false);
+            //    cmd.Parameters.AddWithValue("@Status", 1);
+            //    cmd.Parameters.AddWithValue("@AdultCount", txtAdultsExtend.Text);
+            //    cmd.Parameters.AddWithValue("@ChildCount", txtChildExtend.Text);
+            //    cmd.Parameters.AddWithValue("@Amount", 0);
+            //    cmd.Parameters.AddWithValue("@IsActive", true);
+            //    cmd.Parameters.AddWithValue("@IsDeleted", false);
+            //    cmd.Parameters.AddWithValue("@CreatedOn", DateTime.UtcNow.GetIndianTime());
 
-                con.Open();
-                cmd.ExecuteNonQuery();
-            }
+            //    con.Open();
+            //    cmd.ExecuteNonQuery();
+            //}
 
             MessageBox.Show("Save Successfully", "Success",
                MessageBoxButtons.OK, MessageBoxIcon.Information);

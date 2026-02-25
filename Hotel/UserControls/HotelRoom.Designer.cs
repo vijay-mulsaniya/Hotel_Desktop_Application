@@ -96,7 +96,7 @@
             lblPendingAmount.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             lblPendingAmount.AutoSize = true;
             lblPendingAmount.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            lblPendingAmount.ForeColor = Color.Red;
+            lblPendingAmount.ForeColor = Color.SaddleBrown;
             lblPendingAmount.Location = new Point(147, 217);
             lblPendingAmount.Name = "lblPendingAmount";
             lblPendingAmount.Size = new Size(46, 21);

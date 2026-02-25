@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             flowLayoutPanel1 = new FlowLayoutPanel();
             panelTop = new Panel();
             btnRefresh = new Button();
@@ -47,6 +48,7 @@
             lblDeluxeTotal = new Label();
             label2 = new Label();
             label1 = new Label();
+            timer1 = new System.Windows.Forms.Timer(components);
             panelTop.SuspendLayout();
             SuspendLayout();
             // 
@@ -271,6 +273,12 @@
             label1.TabIndex = 0;
             label1.Text = "All Rooms";
             // 
+            // timer1
+            // 
+            timer1.Enabled = true;
+            timer1.Interval = 960000;
+            timer1.Tick += timer1_Tick;
+            // 
             // frmBooking
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -309,5 +317,6 @@
         private Label lblAvailableTotal;
         private Label lblTotalRooms;
         private Button btnRefresh;
+        private System.Windows.Forms.Timer timer1;
     }
 }

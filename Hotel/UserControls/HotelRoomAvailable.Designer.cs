@@ -37,15 +37,16 @@
             lblCharges = new Label();
             lblRoomId = new Label();
             lblCheckOutToday = new Label();
+            lblGuestName = new Label();
             SuspendLayout();
             // 
             // lblRoomNumber
             // 
             lblRoomNumber.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             lblRoomNumber.Font = new Font("Segoe UI Semibold", 36F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblRoomNumber.Location = new Point(-1, 40);
+            lblRoomNumber.Location = new Point(-1, 56);
             lblRoomNumber.Name = "lblRoomNumber";
-            lblRoomNumber.Size = new Size(350, 65);
+            lblRoomNumber.Size = new Size(350, 66);
             lblRoomNumber.TabIndex = 0;
             lblRoomNumber.Text = "A1";
             lblRoomNumber.TextAlign = ContentAlignment.MiddleCenter;
@@ -55,7 +56,7 @@
             lblRoomTitle.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             lblRoomTitle.AutoSize = true;
             lblRoomTitle.Font = new Font("Segoe UI", 12F);
-            lblRoomTitle.Location = new Point(117, 115);
+            lblRoomTitle.Location = new Point(117, 123);
             lblRoomTitle.Name = "lblRoomTitle";
             lblRoomTitle.Size = new Size(118, 21);
             lblRoomTitle.TabIndex = 1;
@@ -64,7 +65,7 @@
             // 
             // btnBookNow
             // 
-            btnBookNow.Location = new Point(117, 152);
+            btnBookNow.Location = new Point(117, 162);
             btnBookNow.Name = "btnBookNow";
             btnBookNow.Size = new Size(118, 37);
             btnBookNow.TabIndex = 2;
@@ -127,7 +128,7 @@
             // lblCheckOutToday
             // 
             lblCheckOutToday.Anchor = AnchorStyles.Top;
-            lblCheckOutToday.Location = new Point(-1, 13);
+            lblCheckOutToday.Location = new Point(-1, 33);
             lblCheckOutToday.Name = "lblCheckOutToday";
             lblCheckOutToday.Size = new Size(350, 23);
             lblCheckOutToday.TabIndex = 5;
@@ -135,12 +136,25 @@
             lblCheckOutToday.TextAlign = ContentAlignment.MiddleCenter;
             lblCheckOutToday.Visible = false;
             // 
+            // lblGuestName
+            // 
+            lblGuestName.Anchor = AnchorStyles.Top;
+            lblGuestName.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblGuestName.Location = new Point(-1, 7);
+            lblGuestName.Name = "lblGuestName";
+            lblGuestName.Size = new Size(350, 23);
+            lblGuestName.TabIndex = 5;
+            lblGuestName.Text = "Guest Name";
+            lblGuestName.TextAlign = ContentAlignment.MiddleCenter;
+            lblGuestName.Visible = false;
+            // 
             // HotelRoomAvailable
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.White;
             BorderStyle = BorderStyle.FixedSingle;
+            Controls.Add(lblGuestName);
             Controls.Add(lblCheckOutToday);
             Controls.Add(lblRoomId);
             Controls.Add(lblCharges);
@@ -168,5 +182,6 @@
         private Label lblCharges;
         private Label lblRoomId;
         private Label lblCheckOutToday;
+        private Label lblGuestName;
     }
 }
