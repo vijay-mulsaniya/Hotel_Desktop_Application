@@ -319,6 +319,13 @@ namespace Hotel.Forms
                 },
             });
 
+            gridRoomDetail.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                DataPropertyName = "TaxPercentage",
+                HeaderText = "Tax Percentage",
+                Visible = false
+            });
+
             gridRoomDetail.Columns.Add(new DataGridViewButtonColumn
             {
                 Name = "colEdit",
@@ -479,7 +486,7 @@ namespace Hotel.Forms
 
             try
             {
-                await Task.Delay(200);
+               
                 if (grdBilling.CurrentRow?.DataBoundItem is BillingDto row)
                 {
                     if (row.BookingMasterID == 0) return;
@@ -491,8 +498,20 @@ namespace Hotel.Forms
                     lblPendingAmount.Text = row.Pending.ToString("C0");
                     lblPendingAmount.ForeColor = row.Pending > 0 ? Color.Red : Color.Green;
 
+
                     var data = await paymentService.RoomBookings(row.BookingMasterID);
                     gridRoomDetail.DataSource = data;
+
+                    if (row.IsGSTApplicable)
+                    {
+                        var discount = row.Discount;
+                        var lineItemSum = data.Sum(x => x.Amount);
+                        var afterDiscountTotal = lineItemSum - discount;
+                        var taxAmount = afterDiscountTotal * 5 / 100;
+
+                        lblTaxAmount.Text = taxAmount.ToString("C2");
+                        lblPendingAmount.Text = (row.Pending + taxAmount).ToString("C0");
+                    }
 
                     fillRoomsCombo(data);
 
@@ -633,8 +652,9 @@ namespace Hotel.Forms
             // ================= EDIT =================
             if (columnName == "colEdit")
             {
-                using (var frm = new FrmRoomBookingEdit(row))
+                using (var frm = new FrmRoomBookingEdit())
                 {
+                    frm.BookingData = row;
                     frm.StartPosition = FormStartPosition.CenterParent;
 
                     if (frm.ShowDialog() == DialogResult.OK)

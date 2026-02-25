@@ -52,12 +52,14 @@
             lblInvoiceNumber = new Label();
             lblGuestName = new Label();
             lblAmount_ = new Label();
+            lblTaxAmount = new Label();
             lblTotalAmount = new Label();
             label1 = new Label();
             grdPaymentDetail = new DataGridView();
             label8 = new Label();
             label7 = new Label();
             gridRoomDetail = new DataGridView();
+            label10 = new Label();
             panelTop.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)grdBilling).BeginInit();
@@ -174,7 +176,9 @@
             groupBoxPayment.Controls.Add(txtAmount);
             groupBoxPayment.Controls.Add(lblInvoiceNumber);
             groupBoxPayment.Controls.Add(lblGuestName);
+            groupBoxPayment.Controls.Add(label10);
             groupBoxPayment.Controls.Add(lblAmount_);
+            groupBoxPayment.Controls.Add(lblTaxAmount);
             groupBoxPayment.Controls.Add(lblTotalAmount);
             groupBoxPayment.Location = new Point(1019, 45);
             groupBoxPayment.Name = "groupBoxPayment";
@@ -327,6 +331,16 @@
             lblAmount_.TabIndex = 4;
             lblAmount_.Text = "Total Amount";
             // 
+            // lblTaxAmount
+            // 
+            lblTaxAmount.AutoSize = true;
+            lblTaxAmount.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            lblTaxAmount.Location = new Point(569, 86);
+            lblTaxAmount.Name = "lblTaxAmount";
+            lblTaxAmount.Size = new Size(14, 15);
+            lblTaxAmount.TabIndex = 4;
+            lblTaxAmount.Text = "0";
+            // 
             // lblTotalAmount
             // 
             lblTotalAmount.AutoSize = true;
@@ -386,6 +400,15 @@
             gridRoomDetail.ReadOnly = true;
             gridRoomDetail.Size = new Size(855, 485);
             gridRoomDetail.TabIndex = 0;
+            // 
+            // label10
+            // 
+            label10.AutoSize = true;
+            label10.Location = new Point(536, 86);
+            label10.Name = "label10";
+            label10.Size = new Size(27, 15);
+            label10.TabIndex = 4;
+            label10.Text = "Tax:";
             // 
             // frmPayment
             // 
@@ -451,5 +474,7 @@
         private Label lblInvoiceNumber;
         private Button btnShowInvoice;
         private PictureBox pictureBox1;
+        private Label lblTaxAmount;
+        private Label label10;
     }
 }

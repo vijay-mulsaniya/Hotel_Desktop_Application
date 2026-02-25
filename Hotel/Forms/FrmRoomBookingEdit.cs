@@ -3,19 +3,32 @@ using Hotel.Dtos;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System.Data;
+using System.ComponentModel;
 
 namespace Hotel.Forms
 {
     public partial class FrmRoomBookingEdit : Form
     {
-        private RoomBookingDto _booking;
+        private RoomBookingDto _booking = new RoomBookingDto();
         private string _connectionString;
         private List<(int ID, string? RoomNumber, string? RoomTitle)> roomList = [];
         private List<(int ID, string? RoomNumber, string? RoomTitle)> roomListFromToDate = [];
-        public FrmRoomBookingEdit(RoomBookingDto booking)
+
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public RoomBookingDto BookingData
+        {
+            get => _booking;
+            set
+            {
+                _booking = value;
+            }
+        }
+
+        public FrmRoomBookingEdit()
         {
             InitializeComponent();
-            _booking = booking;
+            //_booking = booking;
             _connectionString = CommonMethods.GetConnectionString();
             cmbRoomNumbers.SelectedIndexChanged += CheckForChanges;
             dtpDate.ValueChanged += CheckForChanges;
@@ -38,7 +51,7 @@ namespace Hotel.Forms
             dtpToDate.Format = DateTimePickerFormat.Custom;
             dtpToDate.CustomFormat = "dd/MM/yyyy hh:mm tt";
 
-            var roomSource = roomList.Select(r => new 
+            var roomSource = roomList.Select(r => new
             {
                 r.ID,
                 DisplayName = $"{r.RoomNumber} - {r.RoomTitle}"
@@ -128,7 +141,7 @@ namespace Hotel.Forms
             // 3. The Comparison Logic
             bool isChanged =
                 selectedRoomId != _booking.RoomID ||
-                dtpDate.Value != _booking.Date || 
+                dtpDate.Value != _booking.Date ||
                 chkNightStay.Checked != _booking.NightStay ||
                 currentAdults != _booking.AdultCount ||
                 currentChildren != _booking.ChildCount ||
@@ -342,7 +355,7 @@ namespace Hotel.Forms
             if (txtAdultsExtend.Text == "") return false;
             if (txtChildExtend.Text == "") return false;
             if (txtPerNightCharge.Text == "") return false;
-          
+
             return true;
         }
 

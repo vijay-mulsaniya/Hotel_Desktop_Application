@@ -399,7 +399,6 @@
         private Label label4;
         private TextBox txtPerNightCharge;
         private Label label7;
-        private TextBox textBox2;
         private TextBox txtAdultsExtend;
         private Label label9;
         private Label label8;

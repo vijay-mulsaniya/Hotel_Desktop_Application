@@ -188,8 +188,9 @@ namespace Hotel.Forms
         private List<ListboxItemAvailableRooms> GetAvailableRooms()
         {
 
-            DateTime fromDate = dtpFromDateTime.Value;
-            DateTime toDate = dtpToDateTime.Value; // checkout date (excluded)
+            DateTime fromDate = dtpFromDateTime.Value.Date;
+            DateTime toDate = dtpToDateTime.Value.Date;
+            DateTime yesterday = fromDate.AddDays(-1);
 
             var availableRooms = context.Rooms
                 .Where(r => r.HotelID == HotelID)
@@ -199,16 +200,30 @@ namespace Hotel.Forms
                         rb.Status == BookingStatus.Booked &&
                         rb.NightStay == true &&
                         rb.Date.HasValue &&
-                        rb.Date.Value >= fromDate &&
-                        rb.Date.Value < toDate
+                        rb.Date.Value.Date >= fromDate &&
+                        rb.Date.Value.Date < toDate
                     )
                 )
+                .Select(x => new
+                {
+                    x.ID,
+                    x.RoomNumber,
+                    x.RoomTitle,
+                    IsCheckingOutOnArrival = x.RoomBookings.Any(b =>
+                                            b.Status == BookingStatus.Booked &&
+                                            b.NightStay == true &&
+                                            b.Date.HasValue &&
+                                            b.Date.Value.Date == yesterday)
+                }).ToList() // Bring to memory to build the DisplayName string
                 .Select(x => new ListboxItemAvailableRooms
                 {
                     ID = x.ID,
                     RoomNumber = x.RoomNumber!,
-                    DisplayName = $"{x.RoomNumber} - {x.RoomTitle}" + (x.RoomBookings.Any(b => b.Date.HasValue && b.Date.Value.Date == fromDate.Date && b.NightStay == false) ? " ✔" : ""),
-                    IsCheckoutToday = x.RoomBookings.Any(b => b.NightStay == false)
+                    IsCheckoutToday = x.IsCheckingOutOnArrival,
+                    // If checking out today, add a clear visual indicator like (CO) or ⟳
+                    DisplayName = x.IsCheckingOutOnArrival
+                        ? $"{x.RoomNumber} - {x.RoomTitle} [✔]"
+                        : $"{x.RoomNumber} - {x.RoomTitle}"
                 })
                 .ToList();
 
@@ -268,7 +283,9 @@ namespace Hotel.Forms
                         NightStay = true, // Each entry represents one night stay
                         AdultCount = Convert.ToInt32(txtAdult.Text),
                         ChildCount = Convert.ToInt32(txtChild.Text),
-                        Amount = Convert.ToDecimal(txtPricePerNight.Text) // Assuming price per night is a property of TblRoom
+                        Amount = Convert.ToDecimal(txtPricePerNight.Text),
+                        TaxPercentage = chkIsGSTApplicable.Checked ? 5 : 0,
+                        // Assuming price per night is a property of TblRoom
                     });
                 }
 
@@ -318,12 +335,16 @@ namespace Hotel.Forms
             // Get GST Percentage....
             decimal perNightAverage = bookingGridSource.Any() ? bookingGridSource.Where(b => b.NightStay == true).Average(rb => rb.Amount) : 0;
             decimal gstPercentage = 0;
-            if (!isGstApplicable || perNightAverage < 1000)
-                gstPercentage = 0;
-            else if (perNightAverage < 7500)
-                gstPercentage = 12;
-            else
-                gstPercentage = 18;
+
+            //if (!isGstApplicable || perNightAverage < 1000)
+            //    gstPercentage = 0;
+            //else if (perNightAverage < 7500)
+            //    gstPercentage = 12;
+            //else
+            //    gstPercentage = 18;
+
+            if (isGstApplicable)  //FIX GST As per client demand.
+                gstPercentage = 5;
 
             // Get GST Amount
             if (!isGstApplicable || gstPercentage == 0)

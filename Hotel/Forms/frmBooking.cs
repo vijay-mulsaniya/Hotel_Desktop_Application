@@ -3,15 +3,7 @@ using Hotel.Data;
 using Hotel.Dtos;
 using Hotel.Models;
 using Hotel.UserControls;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Diagnostics;
-using System.Drawing;
-using System.Text;
-using System.Windows.Forms;
 
 namespace Hotel.Forms
 {
@@ -186,13 +178,25 @@ namespace Hotel.Forms
 
             var roomList = allRooms.Select(x =>
             {
-                var currentBooking = relevantBookings.FirstOrDefault(b => b.RoomID == x.ID && b.Date!.Value.Date == dateOnly);
-
-                // Departing guest: Someone who was there 'Yesterday' but NOT 'Today'
-                var departingBooking = relevantBookings.FirstOrDefault(b => b.RoomID == x.ID && b.Date!.Value.Date == yesterday);
+                var stayedLastNight = relevantBookings.FirstOrDefault(b => b.RoomID == x.ID && b.Date!.Value.Date == yesterday);
+                var stayingTonight = relevantBookings.FirstOrDefault(b => b.RoomID == x.ID && b.Date!.Value.Date == dateOnly);
 
                 bool isCheckingOutToday = false;
-                var displayBooking = currentBooking ?? departingBooking;
+                if (stayedLastNight != null)
+                {
+                    // If they stayed last night (25th) but are NOT staying tonight (26th), 
+                    // they are definitely checking out today.
+                    if (stayingTonight == null)
+                    {
+                        isCheckingOutToday = true;
+                    }
+                    // OR: If your 'LastNightDate' logic confirms their stay ends this morning
+                    else if (stayedLastNight.LastNightDate!.Value.Date == yesterday)
+                    {
+                        isCheckingOutToday = true;
+                    }
+                }
+                var displayBooking = stayingTonight ?? stayedLastNight;
 
                 if (displayBooking != null)
                 {
@@ -219,20 +223,20 @@ namespace Hotel.Forms
                     RoomNumber = x.RoomNumber,
                     RoomTitle = x.RoomTitle,
                     RoomType = GetRoomTypeString(x.RoomType),
-                    IsAvailable = currentBooking == null,
+                    IsAvailable = stayingTonight == null,
 
                     // Booking Details
-                    GuestName = currentBooking?.GuestName,
-                    CheckInDate = currentBooking?.Master?.CheckInDate,
+                    GuestName = displayBooking?.GuestName,
+                    CheckInDate = displayBooking?.Master?.CheckInDate,
 
                     // Apply the dynamic checkout here
-                    CheckOutDate = displayBooking?.LastNightDate?.AddDays(1).AddHours(8).AddMinutes(30),
+                    CheckOutDate = displayBooking?.LastNightDate!.Value.Date.AddDays(1).AddHours(8).AddMinutes(30),
 
-                    PersonCount = currentBooking != null ? $"A: {currentBooking.AdultCount}, C: {currentBooking.ChildCount}" : "",
-                    Nights = currentBooking?.NightCount ?? 0,
-                    BookingMasterId = currentBooking?.Master?.ID ?? 0,
-                    TotalCharges = currentBooking?.TotalBookingAmount ?? 0,
-                    PaidAmount = currentBooking?.PaidAmount ?? 0,
+                    PersonCount = displayBooking != null ? $"A: {displayBooking.AdultCount}, C: {displayBooking.ChildCount}" : "",
+                    Nights = displayBooking?.NightCount ?? 0,
+                    BookingMasterId = displayBooking?.Master?.ID ?? 0,
+                    TotalCharges = displayBooking?.TotalBookingAmount ?? 0,
+                    PaidAmount = displayBooking?.PaidAmount ?? 0,
                     FoodCharges = 0
                 };
             }).ToList();

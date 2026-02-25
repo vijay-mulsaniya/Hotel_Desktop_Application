@@ -44,9 +44,10 @@ namespace Hotel.Dtos
                     : 0;
 
                 if (!IsGSTApplicable) return 0;
-                if (perNightAmount < 1000) return 0;
-                if (perNightAmount < 7500) return 12;
-                return 18;
+                //if (perNightAmount < 1000) return 0;
+                //if (perNightAmount < 7500) return 12;
+                //return 18;
+                return 5;
             }
         }
         public decimal GSTAmount

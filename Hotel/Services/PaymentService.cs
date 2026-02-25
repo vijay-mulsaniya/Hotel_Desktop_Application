@@ -131,7 +131,7 @@ namespace Hotel.Services
                     Amount = rb.Amount,
                     GuestName = rb.Guest != null ? rb.Guest.FirstName! : "Unknown",
                     RoomNumber = rb.Room != null ? rb.Room.RoomNumber! : "Unknown",
-                    RoomTitle = rb.Room != null ? rb.Room.RoomTitle! : "Unknown"
+                    RoomTitle = rb.Room != null ? rb.Room.RoomTitle! : "Unknown",
                     //Room = rb.Room,
                     //Guest = rb.Guest
                 }).ToListAsync();
@@ -270,7 +270,6 @@ namespace Hotel.Services
             await context.SaveChangesAsync();
             return true;
         }
-
         public async Task<List<ListboxItemAvailableRooms>> RoomsByInvoice(int invoiceID)
         {
             var allrooms = await RoomBookings(invoiceID);
@@ -287,7 +286,6 @@ namespace Hotel.Services
                                  .ToList();
             return distinctRooms;
         }
-
     }
 
     public class GuestStateCode

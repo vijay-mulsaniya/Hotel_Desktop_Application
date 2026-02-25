@@ -190,6 +190,7 @@ namespace Hotel.Models
         public int AdultCount { get; set; } = 1;
         public int ChildCount { get; set; } = 0;
         public decimal Amount { get; set; } = 0M;
+        public decimal TaxPercentage { get; set; } = 0M;
 
         public TblHotel? Hotel { get; set; }
         public TblRoom? Room { get; set; }
