@@ -52,8 +52,10 @@
             btnTransactions = new ToolStripButton();
             btnBookNow = new ToolStripButton();
             btnReports = new ToolStripButton();
+            btnChangePassword = new ToolStripButton();
             mainStatusStrip = new StatusStrip();
             lblStatus = new ToolStripStatusLabel();
+            statusLabelUserName = new ToolStripStatusLabel();
             mainMenu.SuspendLayout();
             mainToolStrip.SuspendLayout();
             mainStatusStrip.SuspendLayout();
@@ -171,7 +173,7 @@
             // 
             // mainToolStrip
             // 
-            mainToolStrip.Items.AddRange(new ToolStripItem[] { btnAddGuest, btnMembers, btnReceipt, btnTransactions, btnBookNow, btnReports });
+            mainToolStrip.Items.AddRange(new ToolStripItem[] { btnAddGuest, btnMembers, btnReceipt, btnTransactions, btnBookNow, btnReports, btnChangePassword });
             mainToolStrip.Location = new Point(0, 24);
             mainToolStrip.Name = "mainToolStrip";
             mainToolStrip.Size = new Size(1164, 57);
@@ -249,9 +251,20 @@
             btnReports.Text = "Reports";
             btnReports.Click += btnReports_Click;
             // 
+            // btnChangePassword
+            // 
+            btnChangePassword.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            btnChangePassword.Image = Properties.Resources.Key_1;
+            btnChangePassword.ImageScaling = ToolStripItemImageScaling.None;
+            btnChangePassword.ImageTransparentColor = Color.Magenta;
+            btnChangePassword.Name = "btnChangePassword";
+            btnChangePassword.Size = new Size(54, 54);
+            btnChangePassword.Text = "Change Password";
+            btnChangePassword.Click += btnChangePassword_Click;
+            // 
             // mainStatusStrip
             // 
-            mainStatusStrip.Items.AddRange(new ToolStripItem[] { lblStatus });
+            mainStatusStrip.Items.AddRange(new ToolStripItem[] { lblStatus, statusLabelUserName });
             mainStatusStrip.Location = new Point(0, 629);
             mainStatusStrip.Name = "mainStatusStrip";
             mainStatusStrip.Size = new Size(1164, 22);
@@ -263,6 +276,12 @@
             lblStatus.Name = "lblStatus";
             lblStatus.Size = new Size(39, 17);
             lblStatus.Text = "Ready";
+            // 
+            // statusLabelUserName
+            // 
+            statusLabelUserName.Name = "statusLabelUserName";
+            statusLabelUserName.Size = new Size(65, 17);
+            statusLabelUserName.Text = "User Name";
             // 
             // MainForm
             // 
@@ -320,5 +339,7 @@
         private ToolStripMenuItem carCardToolStripMenuItem;
         private ToolStripButton btnBookNow;
         private ToolStripButton btnAddGuest;
+        private ToolStripButton btnChangePassword;
+        private ToolStripStatusLabel statusLabelUserName;
     }
 }

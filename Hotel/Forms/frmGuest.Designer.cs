@@ -65,11 +65,11 @@
             label19 = new Label();
             label20 = new Label();
             txtIDCountry = new TextBox();
-            txtStaIDState = new TextBox();
+            txtIDState = new TextBox();
             txtIssueDate = new TextBox();
-            textBox12 = new TextBox();
-            textBox13 = new TextBox();
-            txtIDcardType = new TextBox();
+            txtExpiryDate = new TextBox();
+            txtProofNumber = new TextBox();
+            txtProofType = new TextBox();
             ((System.ComponentModel.ISupportInitialize)dgvBooking).BeginInit();
             groupBox1.SuspendLayout();
             panelTop.SuspendLayout();
@@ -346,11 +346,11 @@
             groupBox2.Controls.Add(label19);
             groupBox2.Controls.Add(label20);
             groupBox2.Controls.Add(txtIDCountry);
-            groupBox2.Controls.Add(txtStaIDState);
+            groupBox2.Controls.Add(txtIDState);
             groupBox2.Controls.Add(txtIssueDate);
-            groupBox2.Controls.Add(textBox12);
-            groupBox2.Controls.Add(textBox13);
-            groupBox2.Controls.Add(txtIDcardType);
+            groupBox2.Controls.Add(txtExpiryDate);
+            groupBox2.Controls.Add(txtProofNumber);
+            groupBox2.Controls.Add(txtProofType);
             groupBox2.Location = new Point(601, 71);
             groupBox2.Name = "groupBox2";
             groupBox2.Size = new Size(563, 343);
@@ -366,6 +366,7 @@
             btnIDSave.TabIndex = 7;
             btnIDSave.Text = "Save";
             btnIDSave.UseVisualStyleBackColor = true;
+            btnIDSave.Click += btnIDSave_Click;
             // 
             // btnUploadID
             // 
@@ -375,6 +376,7 @@
             btnUploadID.TabIndex = 6;
             btnUploadID.Text = "Upload ID Card";
             btnUploadID.UseVisualStyleBackColor = true;
+            btnUploadID.Click += btnUploadID_Click;
             // 
             // label14
             // 
@@ -437,12 +439,12 @@
             txtIDCountry.Size = new Size(177, 23);
             txtIDCountry.TabIndex = 5;
             // 
-            // txtStaIDState
+            // txtIDState
             // 
-            txtStaIDState.Location = new Point(111, 99);
-            txtStaIDState.Name = "txtStaIDState";
-            txtStaIDState.Size = new Size(169, 23);
-            txtStaIDState.TabIndex = 4;
+            txtIDState.Location = new Point(111, 99);
+            txtIDState.Name = "txtIDState";
+            txtIDState.Size = new Size(169, 23);
+            txtIDState.TabIndex = 4;
             // 
             // txtIssueDate
             // 
@@ -451,26 +453,26 @@
             txtIssueDate.Size = new Size(169, 23);
             txtIssueDate.TabIndex = 2;
             // 
-            // textBox12
+            // txtExpiryDate
             // 
-            textBox12.Location = new Point(370, 63);
-            textBox12.Name = "textBox12";
-            textBox12.Size = new Size(177, 23);
-            textBox12.TabIndex = 3;
+            txtExpiryDate.Location = new Point(370, 63);
+            txtExpiryDate.Name = "txtExpiryDate";
+            txtExpiryDate.Size = new Size(177, 23);
+            txtExpiryDate.TabIndex = 3;
             // 
-            // textBox13
+            // txtProofNumber
             // 
-            textBox13.Location = new Point(370, 27);
-            textBox13.Name = "textBox13";
-            textBox13.Size = new Size(177, 23);
-            textBox13.TabIndex = 1;
+            txtProofNumber.Location = new Point(370, 27);
+            txtProofNumber.Name = "txtProofNumber";
+            txtProofNumber.Size = new Size(177, 23);
+            txtProofNumber.TabIndex = 1;
             // 
-            // txtIDcardType
+            // txtProofType
             // 
-            txtIDcardType.Location = new Point(111, 27);
-            txtIDcardType.Name = "txtIDcardType";
-            txtIDcardType.Size = new Size(169, 23);
-            txtIDcardType.TabIndex = 0;
+            txtProofType.Location = new Point(111, 27);
+            txtProofType.Name = "txtProofType";
+            txtProofType.Size = new Size(169, 23);
+            txtProofType.TabIndex = 0;
             // 
             // frmGuest
             // 
@@ -528,11 +530,9 @@
         private Label label19;
         private Label label20;
         private TextBox txtIDCountry;
-        private TextBox txtStaIDState;
+        private TextBox txtIDState;
         private TextBox txtIssueDate;
-        private TextBox textBox12;
-        private TextBox textBox13;
-        private TextBox txtIDcardType;
+        private TextBox txtProofType;
         private RadioButton radioButton3;
         private RadioButton radioButton2;
         private RadioButton radioButton1;
@@ -540,5 +540,7 @@
         private TextBox txtEmail;
         private Label label6;
         private TextBox txtPhone2;
+        private TextBox txtExpiryDate;
+        private TextBox txtProofNumber;
     }
 }

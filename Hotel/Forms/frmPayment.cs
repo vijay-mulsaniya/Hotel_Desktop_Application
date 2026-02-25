@@ -52,6 +52,14 @@ namespace Hotel.Forms
                     break;
                 }
             }
+
+            ApplyPermissions();
+        }
+
+        private void ApplyPermissions()
+        {
+            // Example: Only Admins can see the Settings button
+            btnAddPayment.Enabled = AppSession.IsInRole("Admin");
         }
 
         #region Grid Column Generation
@@ -195,7 +203,8 @@ namespace Hotel.Forms
                 HeaderText = "Action",
                 Text = "Edit",
                 UseColumnTextForButtonValue = true,
-                FillWeight = 60
+                FillWeight = 60,
+                Visible = AppSession.IsInRole("Admin") || AppSession.IsInRole("Manager")
             });
 
             grdBilling.Columns.Add(new DataGridViewButtonColumn
@@ -204,7 +213,8 @@ namespace Hotel.Forms
                 HeaderText = "Action",
                 Text = "Delete",
                 UseColumnTextForButtonValue = true,
-                FillWeight = 60
+                FillWeight = 60,
+                Visible = AppSession.IsInRole("Admin") || AppSession.IsInRole("Manager")
             });
 
         }
@@ -332,7 +342,8 @@ namespace Hotel.Forms
                 HeaderText = "Action",
                 Text = "Edit",
                 UseColumnTextForButtonValue = true,
-                FillWeight = 60
+                FillWeight = 60,
+                Visible = AppSession.IsInRole("Admin") || AppSession.IsInRole("Manager")
             });
             gridRoomDetail.Columns.Add(new DataGridViewButtonColumn
             {
@@ -340,7 +351,8 @@ namespace Hotel.Forms
                 HeaderText = "Action",
                 Text = "Delete",
                 UseColumnTextForButtonValue = true,
-                FillWeight = 60
+                FillWeight = 60,
+                Visible = AppSession.IsInRole("Admin") || AppSession.IsInRole("Manager")
             });
         }
         private void AddPaymentGridColumns()
@@ -486,7 +498,7 @@ namespace Hotel.Forms
 
             try
             {
-               
+
                 if (grdBilling.CurrentRow?.DataBoundItem is BillingDto row)
                 {
                     if (row.BookingMasterID == 0) return;
@@ -548,10 +560,9 @@ namespace Hotel.Forms
 
                 IsGSTApplicable = billingSummary.IsGSTApplicable,
                 IsTaxInclusive = billingSummary.IsTaxInclusive,
-                Discount = billingSummary.Discount 
+                Discount = billingSummary.Discount
             };
         }
-
         private void fillRoomsCombo(List<RoomBookingDto> bookingDetail)
         {
             var distinctRooms = bookingDetail

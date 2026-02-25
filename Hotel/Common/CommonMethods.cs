@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Hotel.Models;
+using Microsoft.Extensions.Configuration;
 using System.ComponentModel;
 using System.Text.RegularExpressions;
 using TimeZoneConverter;
@@ -28,7 +29,6 @@ namespace Hotel.Common
 
             //return utcTime.AddHours(5).AddMinutes(30); 
         }
-
         public static string GetEnumDescription(Enum value)
         {
             var field = value.GetType().GetField(value.ToString());
@@ -37,6 +37,9 @@ namespace Hotel.Common
 
             return attribute != null ? attribute.Description : value.ToString();
         }
+        public static string HashPassword(string password) => BCrypt.Net.BCrypt.HashPassword(password);
+        public static bool VerifyPassword(string password, string hashedPassword) =>
+            BCrypt.Net.BCrypt.Verify(password, hashedPassword);
 
         public static string GetConnectionString()
         {
@@ -48,6 +51,21 @@ namespace Hotel.Common
 
             // Retrieve the connection string by name
             return config.GetConnectionString("DefaultConnection")!;
+        }
+    }
+
+    public static class AppSession
+    {
+        public static TblUser? CurrentUser { get; set; }
+        public static List<string> Roles { get; set; } = new List<string>();
+
+        public static bool IsInRole(string roleName) =>
+            Roles.Any(r => r.Equals(roleName, StringComparison.OrdinalIgnoreCase));
+
+        public static void Logout()
+        {
+            CurrentUser = null;
+            Roles.Clear();
         }
     }
 }

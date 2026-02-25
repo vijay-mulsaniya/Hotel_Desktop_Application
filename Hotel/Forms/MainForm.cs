@@ -1,3 +1,4 @@
+using Hotel.Common;
 using Hotel.Data;
 using Hotel.Models;
 using Microsoft.Data.SqlClient;
@@ -17,7 +18,7 @@ namespace Hotel.Forms
         {
             InitializeComponent();
             this.serviceProvider = serviceProvider;
-            SetMdiClientBackgroundColor(ColorTranslator.FromHtml("#00bff3")) ;
+            SetMdiClientBackgroundColor(ColorTranslator.FromHtml("#00bff3"));
         }
 
         private void SetMdiClientBackgroundColor(System.Drawing.Color color)
@@ -55,7 +56,15 @@ namespace Hotel.Forms
         private void MainForm_Load(object sender, EventArgs e)
         {
             EnableMenus(true);
-            //TestDataConnection();
+            ApplyPermissions();
+        }
+
+        private void ApplyPermissions()
+        {
+            btnBookNow.Visible = AppSession.IsInRole("Admin");
+            btnReports.Visible = AppSession.IsInRole("Admin");
+            btnChangePassword.Visible = AppSession.IsInRole("Admin") || AppSession.IsInRole("Manager");
+            statusLabelUserName.Text = $"Welcome, {AppSession.CurrentUser?.UserName}!";
         }
 
         private void EnableMenus(bool enable)
@@ -139,6 +148,12 @@ namespace Hotel.Forms
         private void btnAddGuest_Click(object sender, EventArgs e)
         {
             var frm = serviceProvider.GetRequiredService<frmGuest>();
+            OpenChild(frm);
+        }
+
+        private void btnChangePassword_Click(object sender, EventArgs e)
+        {
+            var frm = serviceProvider.GetRequiredService<FrmChangePassword>();
             OpenChild(frm);
         }
     }

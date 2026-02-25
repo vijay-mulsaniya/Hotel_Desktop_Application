@@ -1,4 +1,5 @@
-﻿using Hotel.Data;
+﻿using Hotel.Common;
+using Hotel.Data;
 using Hotel.Models;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,8 @@ namespace Hotel.Forms
         private readonly IRepository<TblCity> cityRepository;
         private List<TblGuest> guestList = new List<TblGuest>();
         private List<TblCity> cityList = new List<TblCity>();
+        private string selectedFilePath = string.Empty;
+        private string uploadsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "GuestDocs");
 
         public frmGuest(IRepository<TblGuest> guestRepository, IRepository<TblAddress> addressRepository, IRepository<TblCity> cityRepository)
         {
@@ -26,7 +29,6 @@ namespace Hotel.Forms
             this.addressRepository = addressRepository;
             this.cityRepository = cityRepository;
         }
-
         private void fillGuestGrid()
         {
             guestList = guestRepository
@@ -135,7 +137,7 @@ namespace Hotel.Forms
             MessageBox.Show("Guest information saved successfully.");
             clearTexBoxes();
         }
-        private void clearTexBoxes() 
+        private void clearTexBoxes()
         {
             txtMobileNumber.Text = string.Empty;
             radioButton1.Checked = true;
@@ -148,6 +150,89 @@ namespace Hotel.Forms
             txtCountry.Text = "India";
             txtPhone2.Text = string.Empty;
             txtMobileNumber.Focus();
+        }
+
+        private void btnUploadID_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Filter = "Image Files|*.jpg;*.jpeg;*.png;*.bmp";
+                ofd.Title = "Select Guest ID Proof Image";
+
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    selectedFilePath = ofd.FileName;
+
+                    // Preview the image
+                    // We use Image.FromFile wrapped in a way that doesn't "lock" the file
+                    using (var stream = new FileStream(selectedFilePath, FileMode.Open, FileAccess.Read))
+                    {
+                        picIDBox.Image = Image.FromStream(stream);
+                        picIDBox.SizeMode = PictureBoxSizeMode.Zoom;
+                    }
+                }
+            }
+        }
+        private void btnIDSave_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                //// 1. Validation
+                //if (string.IsNullOrEmpty(selectedFilePath))
+                //{
+                //    MessageBox.Show("Please upload an ID image first.");
+                //    return;
+                //}
+
+                //// 2. Ensure Uploads directory exists
+                //if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+
+                //// 3. Create a unique filename to avoid overwriting (GuestID_Timestamp.jpg)
+                //string extension = Path.GetExtension(selectedFilePath);
+                //string fileName = $"ID_{this.GuestID}_{DateTime.Now:yyyyMMddHHmmss}{extension}";
+                //string destinationPath = Path.Combine(uploadsFolder, fileName);
+
+                //// 4. Copy the file to your app's folder
+                //File.Copy(selectedFilePath, destinationPath, true);
+
+                //// 5. Save to Database
+                //using (var db = new AppDbContext())
+                //{
+                //    var proof = new TblIdentityProof
+                //    {
+                //        GuestID = this.GuestID, // Ensure you have this ID set in the form
+                //        ProofType = txtProofType.Text,
+                //        ProofNumber = txtProofNumber.Text,
+                //        ExpiryDate = txtExpiryDate.Value,
+                //        IssuingAuthority = $"{txtIDState.Text}, {txtIDCountry.Text}",
+                //        DocumentUrl = destinationPath, // Saving the local path
+                //        IsVerified = false,
+                //        CreatedOn = DateTime.UtcNow.GetIndianTime(),
+                //        CreatedbyId = AppSession.CurrentUser?.ID // From our Login logic
+                //    };
+
+                //    db.TblIdentityProofs.Add(proof);
+                //    await db.SaveChangesAsync();
+                //}
+
+                MessageBox.Show("ID Proof saved successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                this.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error: {ex.Message}");
+            }
+        }
+        private void LoadGuestID(string path)
+        {
+            if (File.Exists(path))
+            {
+                byte[] bytes = File.ReadAllBytes(path);
+                using (MemoryStream ms = new MemoryStream(bytes))
+                {
+                    picIDBox.Image = Image.FromStream(ms);
+                }
+            }
         }
     }
 }

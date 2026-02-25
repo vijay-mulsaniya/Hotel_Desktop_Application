@@ -15,10 +15,24 @@ internal static class Program
     {
         var host = CreateHostBuilder().Build();
         ApplicationConfiguration.Initialize();
-        
+
         // Resolve MainForm from DI so dependencies are injected
-        var mainForm = host.Services.GetRequiredService<Forms.MainForm>();
-        Application.Run(mainForm);
+        //var mainForm = host.Services.GetRequiredService<Forms.MainForm>();
+        //Application.Run(mainForm);
+
+        using (var login = new FrmLogin())
+        {
+            if (login.ShowDialog() == DialogResult.OK)
+            {
+                // 2. Login successful, now run the main app
+                var mainForm = host.Services.GetRequiredService<Forms.MainForm>();
+                Application.Run(mainForm);
+            }
+            else
+            {
+                Application.Exit();
+            }
+        }
     }
 
     static IHostBuilder CreateHostBuilder()
@@ -45,6 +59,7 @@ internal static class Program
                 services.AddTransient<frmPaymentCollectionReport>();
                 services.AddTransient<FrmRoomBookingEdit>();
                 services.AddTransient<FrmRoomBookingMasterEdit>();
+                services.AddTransient<FrmChangePassword>();
             });
     }
 }
