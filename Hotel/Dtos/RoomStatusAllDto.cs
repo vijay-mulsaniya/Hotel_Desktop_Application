@@ -60,5 +60,6 @@
         public decimal PaidAmount { get; set; } = 0;
         public int BookingMasterId { get; set; }
         public decimal DueAmount => TotalCharges - PaidAmount + FoodCharges;
+        public bool IsCheckOutCard { get; set; }
     }
 }

@@ -15,6 +15,7 @@ namespace Hotel.UserControls
         private readonly IServiceProvider serviceProvider;
         private readonly MainForm mainForm;
         private DateTime _selectedCheckInDate;
+        private bool _isCheckOutCard;
         public HotelRoomAvailable(IServiceProvider serviceProvider, MainForm mainForm)
         {
             InitializeComponent();
@@ -70,10 +71,34 @@ namespace Hotel.UserControls
             set => lblCharges.Text = value.ToString();
         }
 
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public bool IsCheckOutCard
+        {
+            get => _isCheckOutCard;
+            set
+            {
+                _isCheckOutCard = value;
+                UpdateStatusUI();
+            }
+        }
+        private void UpdateStatusUI()
+        {
+            if (_isCheckOutCard)
+            {
+                this.BackColor = Color.LightGoldenrodYellow; // Indicator that it was just vacated
+                lblRoomNumber.BackColor = Color.Orange;
+                lblCheckOutToday.Visible = true;
+            }
+            else
+            {
+                // Use your existing setBackground(card.RoomTitle) logic here
+            }
+        }
         private void btnBookNow_Click(object sender, EventArgs e)
         {
             var bookNow = serviceProvider.GetRequiredService<frmBookNow>();
-            
+
             if (bookNow != null)
             {
 

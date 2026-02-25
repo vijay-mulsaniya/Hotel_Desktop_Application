@@ -8,7 +8,8 @@ namespace Hotel.Models
         Standard = 1,
         Deluxe = 2,
         SuperDeluxe = 3,
-        Luxery = 4
+        Luxery = 4,
+        Other = 5,  
     }
     public enum Gender
     {

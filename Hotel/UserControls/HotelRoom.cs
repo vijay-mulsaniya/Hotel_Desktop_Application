@@ -8,6 +8,7 @@ namespace Hotel.UserControls
     public partial class HotelRoom : UserControl
     {
         private int? _bookingMasterId;
+        private bool _isCheckOutCard;
         public HotelRoom()
         {
             InitializeComponent();
@@ -21,14 +22,6 @@ namespace Hotel.UserControls
             get => lblRoomNumber.Text;
             set => lblRoomNumber.Text = value;
         }
-
-        //[Browsable(false)]
-        //[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        //public string RoomType
-        //{
-        //    get => lblRoomTitle.Text;
-        //    set => lblRoomTitle.Text = value;
-        //}
 
         [Browsable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -112,6 +105,18 @@ namespace Hotel.UserControls
 
         [Browsable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public bool IsCheckOutCard
+        {
+            get => _isCheckOutCard;
+            set
+            {
+                _isCheckOutCard = value;
+                UpdateStatusUI();
+            }
+        }
+
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public string PersonCount
         {
             get => lblPersonCount.Text;
@@ -127,9 +132,31 @@ namespace Hotel.UserControls
             {
                 paymentForm.CurrentBookingID = BookingMasterId ?? 0;
                 paymentForm.StartPosition = FormStartPosition.CenterParent;
-               
+
                 DialogResult result = paymentForm.ShowDialog();
             }
         }
+
+        private void UpdateStatusUI()
+        {
+            if (_isCheckOutCard)
+            {
+                // High visibility for rooms leaving today
+                this.BackColor = Color.FromArgb(255, 255, 235, 238); // Very light red/pink background
+                lblRoomNumber.BackColor = Color.Maroon;
+                lblRoomNumber.ForeColor = Color.White;
+
+                // Optional: Add a "Checking Out" label or change a border
+                // lblStatusIndicator.Text = "CHECKING OUT";
+                // lblStatusIndicator.Visible = true;
+            }
+            else
+            {
+                //this.BackColor = Color.White;
+                //lblRoomNumber.BackColor = Color.SeaGreen; // Or your default booked color
+                //lblRoomNumber.ForeColor = Color.White;
+            }
+        }
+
     }
 }

@@ -272,20 +272,21 @@ namespace Hotel.Forms
                     });
                 }
 
-                bookingGridSource.Add(new TblRoomBooking
-                {
-                    ID = 0,
-                    HotelID = HotelID,
-                    BookingMasterID = 0,
-                    GuestID = guestId,
-                    RoomID = selectedRoom.ID,
-                    Status = BookingStatus.Booked,
-                    Date = toDate,
-                    NightStay = false, //Last entry for checkout day
-                    AdultCount = Convert.ToInt32(txtAdult.Text),
-                    ChildCount = Convert.ToInt32(txtChild.Text),
-                    Amount = 0
-                });
+                //Removed Last Day Entry
+                //bookingGridSource.Add(new TblRoomBooking
+                //{
+                //    ID = 0,
+                //    HotelID = HotelID,
+                //    BookingMasterID = 0,
+                //    GuestID = guestId,
+                //    RoomID = selectedRoom.ID,
+                //    Status = BookingStatus.Booked,
+                //    Date = toDate,
+                //    NightStay = false, //Last entry for checkout day
+                //    AdultCount = Convert.ToInt32(txtAdult.Text),
+                //    ChildCount = Convert.ToInt32(txtChild.Text),
+                //    Amount = 0
+                //});
 
             }
 
@@ -370,7 +371,7 @@ namespace Hotel.Forms
                     InvoiceDate = currentDate,
                     GuestID = (int)cmbGuests.SelectedValue!,
                     CheckInDate = dtpFromDateTime.Value,
-                    CheckOutDate = dtpToDateTime.Value,
+                    CheckOutDate = bookingGridSource.LastOrDefault()!.Date!.Value.Date.AddDays(1).AddHours(8).AddMinutes(30),
                     Discount = txtDiscount.Text != "" ? Convert.ToDecimal(txtDiscount.Text) : 0,
                     InputTaxCredit = chkInputCreditTax.Checked,
                     HotelStateCode = HotelStateCode,

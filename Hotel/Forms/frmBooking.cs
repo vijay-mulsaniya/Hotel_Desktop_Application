@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
@@ -35,146 +36,233 @@ namespace Hotel.Forms
         {
             LoadRooms();
         }
-
         private void LoadRooms()
         {
+            flowLayoutPanel1.SuspendLayout(); // Stop layout logic to increase speed
             flowLayoutPanel1.Controls.Clear();
 
-            var roomData = GetRooms(dtpDate);
-            var allRooms = roomData.RoomList;
+            var roomData = GetRooms(dtpDate.Value);
+
+            // Update Header Stats
             lblAvailableTotal.Text = roomData.AvailableRooms.ToString();
             lblBookedTotal.Text = roomData.BookedRooms.ToString();
             lblTotalRooms.Text = roomData.TotalRooms.ToString();
             lblAsOn.Text = roomData.Daytype;
 
-            foreach (var titleCount in roomData.RoomStatusByTitle)
+            // Loop through all rooms
+            foreach (var room in roomData.RoomList)
             {
-                string count = $"Booked {titleCount.BookedCount} of {titleCount.TotalCount}";
-
-                if (titleCount.Title == "Deluxe Room")
-                    lblDeluxeTotal.Text = count;
-                else if (titleCount.Title == "Standard Room")
-                    lblStandardRoomCount.Text = count;
-                else if (titleCount.Title == "Dormitory")
-                    lblDormatryCount.Text = count;
-            }
-
-
-            foreach (var room in allRooms)
-            {
-                RoomCard card = new RoomCard();
-                card.RoomId = room.ID;
-                card.RoomNumber = room.RoomNumber!;
-                card.RoomTitle = room.RoomTitle ?? "";
-                card.PricePerNight = room.Charges;
-                card.Capacity = room.Capacity;
-                card.IsAvailable = room.IsAvailable;
-                card.CheckInDate = dtpDate.Value.Date.AddHours(8);
+                // The IsCheckOutCard logic is now driven by the DTO we optimized earlier
+                bool isCheckingOutToday = room.CheckOutDate?.Date == dtpDate.Value.Date;
 
                 if (!room.IsAvailable)
                 {
-                    card.GuestName = room.GuestName!;
-                    card.CheckInDate = room.CheckInDate!.Value;
-                    card.CheckOutDate = room.CheckOutDate!.Value;
-                    card.PersonCount = room.PersonCount;
-                    card.NightCount = room.Nights;
-                    card.TotalAmount = room.TotalCharges;
-                    card.PaidAmount = room.PaidAmount;
-                    card.PendingAmount = room.DueAmount;
-                    card.BookingMasterId = room.BookingMasterId;    
+                    var bookedCard = new HotelRoom
+                    {
+                        RoomId = room.ID,
+                        RoomNumber = room.RoomNumber!,
+                        RoomTitle = room.RoomTitle!,
+                        GuestName = room.GuestName!,
+                        CheckinDate = room.CheckInDate,
+                        CheckoutDate = room.CheckOutDate,
+                        TotalAmount = room.TotalCharges,
+                        PaidAmount = room.PaidAmount,
+                        PendingAmount = room.PaidAmount - room.TotalCharges, // Calculate or use DTO
+                        NightCount = room.Nights,
+                        BookingMasterId = room.BookingMasterId,
+                        PersonCount = room.PersonCount,
+                        IsCheckOutCard = isCheckingOutToday // This triggers UpdateStatusUI()
+                    };
+                    flowLayoutPanel1.Controls.Add(bookedCard);
                 }
-                AddRoom(card);
+                else
+                {
+                    var availCard = new HotelRoomAvailable(serviceProvider, mainForm)
+                    {
+                        RoomId = room.ID,
+                        RoomNumber = room.RoomNumber!,
+                        RoomTitle = room.RoomTitle!,
+                        Capacity = room.Capacity,
+                        ChargesPerNight = room.Charges,
+                        IsCheckOutCard = isCheckingOutToday,
+                        SelectedCheckInDate = lblAsOn.Text == "Today"
+                            ? DateTime.Now
+                            : dtpDate.Value.Date.AddHours(9)
+                    };
+                    // Set the category color
+                    availCard.BackColor = setBackground(room.RoomTitle!);
+                    flowLayoutPanel1.Controls.Add(availCard);
+                }
             }
-        }
 
-        private RoomStatusAllDto GetRooms(DateTimePicker dtp)
+            flowLayoutPanel1.ResumeLayout(); // Refresh layout all at once
+        }
+        //private void LoadRooms()
+        //{
+        //    flowLayoutPanel1.SuspendLayout(); // Stop layout logic to increase speed
+        //    flowLayoutPanel1.Controls.Clear();
+
+        //    var roomData = GetRooms(dtpDate.Value);
+        //    var allRooms = roomData.RoomList;
+        //    lblAvailableTotal.Text = roomData.AvailableRooms.ToString();
+        //    lblBookedTotal.Text = roomData.BookedRooms.ToString();
+        //    lblTotalRooms.Text = roomData.TotalRooms.ToString();
+        //    lblAsOn.Text = roomData.Daytype;
+
+        //    foreach (var titleCount in roomData.RoomStatusByTitle)
+        //    {
+        //        string count = $"Booked {titleCount.BookedCount} of {titleCount.TotalCount}";
+
+        //        if (titleCount.Title == "Deluxe Room")
+        //            lblDeluxeTotal.Text = count;
+        //        else if (titleCount.Title == "Standard Room")
+        //            lblStandardRoomCount.Text = count;
+        //        else if (titleCount.Title == "Dormitory")
+        //            lblDormatryCount.Text = count;
+        //    }
+
+        //    foreach (var room in allRooms)
+        //    {
+        //        RoomCard card = new RoomCard();
+        //        card.RoomId = room.ID;
+        //        card.RoomNumber = room.RoomNumber!;
+        //        card.RoomTitle = room.RoomTitle ?? "";
+        //        card.PricePerNight = room.Charges;
+        //        card.Capacity = room.Capacity;
+        //        card.IsAvailable = room.IsAvailable;
+        //        card.CheckInDate = dtpDate.Value.Date.AddHours(8);
+        //        card.IsCheckOutCard = room.CheckOutDate?.Date == dtpDate.Value.Date;
+
+        //        if (!room.IsAvailable)
+        //        {
+        //            card.GuestName = room.GuestName!;
+        //            card.CheckInDate = room.CheckInDate!.Value;
+        //            card.CheckOutDate = room.CheckOutDate!.Value;
+        //            card.PersonCount = room.PersonCount;
+        //            card.NightCount = room.Nights;
+        //            card.TotalAmount = room.TotalCharges;
+        //            card.PaidAmount = room.PaidAmount;
+        //            card.PendingAmount = room.DueAmount;
+        //            card.BookingMasterId = room.BookingMasterId;
+        //        }
+        //        Debug.WriteLine($"Room {room.RoomNumber} CheckoutFlag: {room.IsCheckOutCard}");
+        //        AddRoom(card);
+        //    }
+
+        //    flowLayoutPanel1.ResumeLayout(); // Refresh layout all at once
+        //}
+
+        private RoomStatusAllDto GetRooms(DateTime selectedDate)
         {
+            var dateOnly = selectedDate.Date;
+            var yesterday = dateOnly.AddDays(-1);
 
-            var bookedRoom = context.RoomBookings
-                .Include(rb => rb.Guest)
-                .Include(rb => rb.BookingMaster).ThenInclude(bm => bm!.Payments)
-                .Where(rb => rb.HotelID == HotelID &&
-                    rb.Status == BookingStatus.Booked &&
-                    rb.NightStay == true &&
-                    rb.Date!.Value.Date == dtp.Value.Date)
-                .Select(x => new HotelRoom
-                {
-                    RoomId = x.RoomID,
-                    RoomNumber = x.Room!.RoomNumber ?? "",
-                    BookingMasterId = x.BookingMaster!.ID,
-                    RoomTitle = x.Room.RoomTitle ?? "",
-                    GuestName = x.Guest!.FirstName ?? "",
-                    CheckinDate = x.BookingMaster!.CheckInDate,
-                    CheckoutDate = x.BookingMaster.CheckOutDate,
-                    PersonCount = $"A: {x.AdultCount}, C: {x.ChildCount}",
-                    NightCount = context.RoomBookings.Where(b => b.BookingMasterID == x.BookingMasterID && b.NightStay == true && x.RoomID == b.RoomID).Count(),
-                    TotalAmount = context.RoomBookings.Where(b => b.BookingMasterID == x.BookingMasterID && b.NightStay == true && x.RoomID == b.RoomID).Sum(a => a.Amount),
-                    PaidAmount = x.BookingMaster.Payments.Where(r => r.RoomID == x.RoomID).Sum(p => p.AmountPaid),
-                    PendingAmount = x.Amount - x.BookingMaster.Payments.Where(r => r.RoomID == x.RoomID).Sum(p => p.AmountPaid)
-                }).ToList();
+            var relevantBookings = context.RoomBookings
+            .Where(rb => rb.HotelID == HotelID &&
+                     rb.Status == BookingStatus.Booked &&
+                     rb.NightStay == true &&
+                     (rb.Date!.Value.Date == dateOnly || rb.Date.Value.Date == yesterday))
+                    .Select(rb => new
+                    {
+                        rb.RoomID,
+                        rb.Date, // To distinguish between today's guest and yesterday's guest
+                        rb.Amount,
+                        rb.AdultCount,
+                        rb.ChildCount,
+                        GuestName = rb.Guest != null ? rb.Guest.FirstName : "",
+                        Master = rb.BookingMaster,
+                        LastNightDate = rb.BookingMaster!.RoomBookings
+                            .Where(x => x.RoomID == rb.RoomID && x.NightStay == true)
+                            .Max(x => x.Date),
+                        TotalBookingAmount = rb.BookingMaster.RoomBookings
+                            .Where(x => x.RoomID == rb.RoomID && x.NightStay == true).Sum(x => x.Amount),
+                        NightCount = rb.BookingMaster.RoomBookings
+                            .Count(x => x.RoomID == rb.RoomID && x.NightStay == true),
+                        PaidAmount = rb.BookingMaster.Payments
+                            .Where(p => p.RoomID == rb.RoomID).Sum(p => p.AmountPaid)
+                    }).ToList();
 
-            var result = context.Rooms
-                        .Where(r => r.HotelID == HotelID)
-                        .AsEnumerable()
-                        .Select(x =>
-                        {
-                            var booking = bookedRoom.FirstOrDefault(b => b.RoomId == x.ID);
-                            string roomType = x.RoomType switch
-                            {
-                                RoomType.Dormitory => "Dormitory",
-                                RoomType.Standard => "Double",
-                                RoomType.Deluxe => "Deluxe",
-                                RoomType.SuperDeluxe => "Super Deluxe",
-                                RoomType.Luxery => "Luxery",
-                                _ => "Unknown"
-                            };
+            var allRooms = context.Rooms.Where(r => r.HotelID == HotelID).ToList();
 
-                            return new BookedRoomDto
-                            {
-                                // -------- ROOM --------
-                                ID = x.ID,
-                                HotelID = x.HotelID,
-                                RoomNumber = x.RoomNumber,
-                                RoomTitle = x.RoomTitle,
-                                RoomType = roomType,
-                                Description = x.Description,
-                                Capacity = x.Capacity,
-                                Charges = x.Charges,
-                                IsClean = x.IsClean,
-                                IsAvailable = booking == null,
-
-                                // -------- BOOKING (if any) --------
-                                GuestName = booking?.GuestName,
-                                CheckInDate = booking?.CheckinDate,
-                                CheckOutDate = booking?.CheckoutDate,
-                                PersonCount = booking?.PersonCount ?? "",
-                                Nights = booking?.NightCount ?? 0,
-                                BookingMasterId = booking?.BookingMasterId ?? 0,
-                                TotalCharges = booking?.TotalAmount ?? 0,
-                                PaidAmount = booking?.PaidAmount ?? 0,
-                                FoodCharges = 0,
-                            };
-                        }).ToList();
-
-            var groupbyTitle = result.GroupBy(x => x.RoomTitle);
-
-            var roomStatusAllDto = new RoomStatusAllDto
+            var roomList = allRooms.Select(x =>
             {
-                SelectedDate = dtp.Value,
-                BookedRooms = result.Count(r => !r.IsAvailable),
-                AvailableRooms = result.Count(r => r.IsAvailable),
-                RoomStatusByTitle = groupbyTitle.Select(g => new TitleCountDto
+                var currentBooking = relevantBookings.FirstOrDefault(b => b.RoomID == x.ID && b.Date!.Value.Date == dateOnly);
+
+                // Departing guest: Someone who was there 'Yesterday' but NOT 'Today'
+                var departingBooking = relevantBookings.FirstOrDefault(b => b.RoomID == x.ID && b.Date!.Value.Date == yesterday);
+
+                bool isCheckingOutToday = false;
+                var displayBooking = currentBooking ?? departingBooking;
+
+                if (displayBooking != null)
                 {
-                    Title = g.Key ?? "Unknown",
-                    AvailableCount = g.Count(r => r.IsAvailable),
-                    BookedCount = g.Count(r => !r.IsAvailable)
-                }).ToList(),
+                    var checkoutDate = displayBooking.LastNightDate!.Value.Date.AddDays(1);
+                    isCheckingOutToday = checkoutDate == dateOnly;
+                }
 
-                RoomList = result
+                //bookingsAtDate.TryGetValue(x.ID, out var booking);
+
+                //// 2. Calculate Dynamic Checkout: MaxDate + 1 Day + 08:30 AM
+                //DateTime? dynamicCheckout = null;
+                //if (booking?.LastNightDate != null)
+                //{
+                //    dynamicCheckout = booking.LastNightDate.Value.Date
+                //                        .AddDays(1)
+                //                        .AddHours(8)
+                //                        .AddMinutes(30);
+                //}
+
+                return new BookedRoomDto
+                {
+                    ID = x.ID,
+                    HotelID = x.HotelID,
+                    RoomNumber = x.RoomNumber,
+                    RoomTitle = x.RoomTitle,
+                    RoomType = GetRoomTypeString(x.RoomType),
+                    IsAvailable = currentBooking == null,
+
+                    // Booking Details
+                    GuestName = currentBooking?.GuestName,
+                    CheckInDate = currentBooking?.Master?.CheckInDate,
+
+                    // Apply the dynamic checkout here
+                    CheckOutDate = displayBooking?.LastNightDate?.AddDays(1).AddHours(8).AddMinutes(30),
+
+                    PersonCount = currentBooking != null ? $"A: {currentBooking.AdultCount}, C: {currentBooking.ChildCount}" : "",
+                    Nights = currentBooking?.NightCount ?? 0,
+                    BookingMasterId = currentBooking?.Master?.ID ?? 0,
+                    TotalCharges = currentBooking?.TotalBookingAmount ?? 0,
+                    PaidAmount = currentBooking?.PaidAmount ?? 0,
+                    FoodCharges = 0
+                };
+            }).ToList();
+
+            return new RoomStatusAllDto
+            {
+                SelectedDate = selectedDate,
+                BookedRooms = roomList.Count(r => !r.IsAvailable),
+                AvailableRooms = roomList.Count(r => r.IsAvailable),
+                RoomList = roomList,
+                RoomStatusByTitle = roomList
+                    .GroupBy(x => x.RoomTitle)
+                    .Select(g => new TitleCountDto
+                    {
+                        Title = g.Key ?? "Unknown",
+                        AvailableCount = g.Count(r => r.IsAvailable),
+                        BookedCount = g.Count(r => !r.IsAvailable)
+                    }).ToList()
             };
-
-            return roomStatusAllDto;
         }
+
+        private string GetRoomTypeString(RoomType? type) => type switch
+        {
+            RoomType.Dormitory => "Dormitory",
+            RoomType.Standard => "Double",
+            RoomType.Deluxe => "Deluxe",
+            RoomType.SuperDeluxe => "Super Deluxe",
+            RoomType.Luxery => "Luxery",
+            _ => "Unknown"
+        };
 
         void AddRoom(RoomCard card)
         {
@@ -194,6 +282,7 @@ namespace Hotel.Forms
                 room.CheckoutDate = card.CheckOutDate;
                 room.PersonCount = card.PersonCount;
                 room.BookingMasterId = card.BookingMasterId;
+                room.IsCheckOutCard = card.IsCheckOutCard;
                 flowLayoutPanel1.Controls.Add(room);
             }
             else
@@ -206,6 +295,7 @@ namespace Hotel.Forms
                 room.Capacity = card.Capacity;
                 room.ChargesPerNight = card.PricePerNight;
                 room.BackColor = setBackground(card.RoomTitle);
+                room.IsCheckOutCard = card.IsCheckOutCard;
                 flowLayoutPanel1.Controls.Add(room);
             }
         }
@@ -243,6 +333,7 @@ namespace Hotel.Forms
         public decimal PaidAmount { get; set; }
         public decimal PendingAmount { get; set; }
         public bool IsAvailable { get; set; }
+        public bool IsCheckOutCard { get; set; }
         public int Capacity { get; set; }
         public decimal PricePerNight { get; set; }
     }

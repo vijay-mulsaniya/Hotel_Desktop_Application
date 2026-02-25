@@ -36,18 +36,19 @@
             label3 = new Label();
             lblCharges = new Label();
             lblRoomId = new Label();
+            lblCheckOutToday = new Label();
             SuspendLayout();
             // 
             // lblRoomNumber
             // 
             lblRoomNumber.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            lblRoomNumber.AutoSize = true;
             lblRoomNumber.Font = new Font("Segoe UI Semibold", 36F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblRoomNumber.Location = new Point(137, 40);
+            lblRoomNumber.Location = new Point(-1, 40);
             lblRoomNumber.Name = "lblRoomNumber";
-            lblRoomNumber.Size = new Size(79, 65);
+            lblRoomNumber.Size = new Size(350, 65);
             lblRoomNumber.TabIndex = 0;
             lblRoomNumber.Text = "A1";
+            lblRoomNumber.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // lblRoomTitle
             // 
@@ -79,16 +80,18 @@
             label1.Size = new Size(53, 15);
             label1.TabIndex = 3;
             label1.Text = "Capicity:";
+            label1.Visible = false;
             // 
             // lblCapacity
             // 
             lblCapacity.AutoSize = true;
             lblCapacity.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            lblCapacity.Location = new Point(73, 218);
+            lblCapacity.Location = new Point(73, 216);
             lblCapacity.Name = "lblCapacity";
             lblCapacity.Size = new Size(14, 15);
             lblCapacity.TabIndex = 3;
             lblCapacity.Text = "0";
+            lblCapacity.Visible = false;
             // 
             // label3
             // 
@@ -98,26 +101,39 @@
             label3.Size = new Size(33, 15);
             label3.TabIndex = 3;
             label3.Text = "Rate:";
+            label3.Visible = false;
             // 
             // lblCharges
             // 
             lblCharges.AutoSize = true;
             lblCharges.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            lblCharges.Location = new Point(295, 217);
+            lblCharges.Location = new Point(295, 216);
             lblCharges.Name = "lblCharges";
             lblCharges.Size = new Size(31, 15);
             lblCharges.TabIndex = 3;
             lblCharges.Text = "0.00";
+            lblCharges.Visible = false;
             // 
             // lblRoomId
             // 
             lblRoomId.AutoSize = true;
-            lblRoomId.Location = new Point(266, 53);
+            lblRoomId.Location = new Point(295, 27);
             lblRoomId.Name = "lblRoomId";
             lblRoomId.Size = new Size(13, 15);
             lblRoomId.TabIndex = 4;
             lblRoomId.Text = "0";
             lblRoomId.Visible = false;
+            // 
+            // lblCheckOutToday
+            // 
+            lblCheckOutToday.Anchor = AnchorStyles.Top;
+            lblCheckOutToday.Location = new Point(-1, 13);
+            lblCheckOutToday.Name = "lblCheckOutToday";
+            lblCheckOutToday.Size = new Size(350, 23);
+            lblCheckOutToday.TabIndex = 5;
+            lblCheckOutToday.Text = "Check-Out Day";
+            lblCheckOutToday.TextAlign = ContentAlignment.MiddleCenter;
+            lblCheckOutToday.Visible = false;
             // 
             // HotelRoomAvailable
             // 
@@ -125,6 +141,7 @@
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.White;
             BorderStyle = BorderStyle.FixedSingle;
+            Controls.Add(lblCheckOutToday);
             Controls.Add(lblRoomId);
             Controls.Add(lblCharges);
             Controls.Add(label3);
@@ -150,5 +167,6 @@
         private Label label3;
         private Label lblCharges;
         private Label lblRoomId;
+        private Label lblCheckOutToday;
     }
 }
