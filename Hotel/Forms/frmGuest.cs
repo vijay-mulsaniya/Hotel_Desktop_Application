@@ -1,13 +1,8 @@
-﻿using Hotel.Common;
-using Hotel.Data;
+﻿using Hotel.Data;
 using Hotel.Models;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.Text;
-using System.Windows.Forms;
+using AForge.Video;
+using AForge.Video.DirectShow;
 
 namespace Hotel.Forms
 {
@@ -20,6 +15,8 @@ namespace Hotel.Forms
         private List<TblCity> cityList = new List<TblCity>();
         private string selectedFilePath = string.Empty;
         private string uploadsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "GuestDocs");
+        private FilterInfoCollection? videoDevices;
+        private VideoCaptureDevice? videoSource;
 
         public frmGuest(IRepository<TblGuest> guestRepository, IRepository<TblAddress> addressRepository, IRepository<TblCity> cityRepository)
         {
@@ -101,6 +98,13 @@ namespace Hotel.Forms
             txtCity.AutoCompleteSource = AutoCompleteSource.CustomSource;
             txtCity.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             txtCity.AutoCompleteCustomSource = source;
+
+            videoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
+            foreach (FilterInfo device in videoDevices)
+            {
+                cmbCameras.Items.Add(device.Name);
+            }
+            if (cmbCameras.Items.Count > 0) cmbCameras.SelectedIndex = 0;
         }
         private void GetCityNames()
         {
@@ -203,7 +207,7 @@ namespace Hotel.Forms
                 //        GuestID = this.GuestID, // Ensure you have this ID set in the form
                 //        ProofType = txtProofType.Text,
                 //        ProofNumber = txtProofNumber.Text,
-                //        ExpiryDate = txtExpiryDate.Value,
+                //        ExpiryDate = txtExpiryDate.Text,
                 //        IssuingAuthority = $"{txtIDState.Text}, {txtIDCountry.Text}",
                 //        DocumentUrl = destinationPath, // Saving the local path
                 //        IsVerified = false,
@@ -232,6 +236,44 @@ namespace Hotel.Forms
                 {
                     picIDBox.Image = Image.FromStream(ms);
                 }
+            }
+        }
+
+        private void btnStartCam_Click(object sender, EventArgs e)
+        {
+            if (cmbCameras.SelectedIndex < 0) return;
+
+            videoSource = new VideoCaptureDevice(videoDevices[cmbCameras.SelectedIndex].MonikerString);
+            videoSource.NewFrame += (s, eventArgs) =>
+            {
+                // Get the live frame
+                Bitmap video = (Bitmap)eventArgs.Frame.Clone();
+                // Display it in the picture box
+                picIDBox.Image = video;
+            };
+            videoSource.Start();
+        }
+
+        private void btnCapture_Click(object sender, EventArgs e)
+        {
+            if (videoSource != null && videoSource.IsRunning)
+            {
+                videoSource.SignalToStop(); // Freeze the frame
+
+                // Save the current image to a temporary path so btnIDSave can use it
+                string tempPath = Path.Combine(Path.GetTempPath(), "captured_id.jpg");
+                picIDBox.Image.Save(tempPath, System.Drawing.Imaging.ImageFormat.Jpeg);
+
+                selectedFilePath = tempPath; // Set this for your existing Save logic
+                MessageBox.Show("Photo Captured!");
+            }
+        }
+
+        private void frmGuest_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (videoSource != null && videoSource.IsRunning)
+            {
+                videoSource.Stop();
             }
         }
     }

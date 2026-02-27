@@ -56,6 +56,9 @@
             label1 = new Label();
             picIDBox = new PictureBox();
             groupBox2 = new GroupBox();
+            btnCapture = new Button();
+            btnStartCam = new Button();
+            cmbCameras = new ComboBox();
             btnIDSave = new Button();
             btnUploadID = new Button();
             label14 = new Label();
@@ -337,6 +340,9 @@
             // 
             // groupBox2
             // 
+            groupBox2.Controls.Add(btnCapture);
+            groupBox2.Controls.Add(btnStartCam);
+            groupBox2.Controls.Add(cmbCameras);
             groupBox2.Controls.Add(btnIDSave);
             groupBox2.Controls.Add(btnUploadID);
             groupBox2.Controls.Add(label14);
@@ -357,6 +363,34 @@
             groupBox2.TabIndex = 14;
             groupBox2.TabStop = false;
             groupBox2.Text = "Identity Info";
+            // 
+            // btnCapture
+            // 
+            btnCapture.Location = new Point(368, 291);
+            btnCapture.Name = "btnCapture";
+            btnCapture.Size = new Size(174, 36);
+            btnCapture.TabIndex = 9;
+            btnCapture.Text = "Capture";
+            btnCapture.UseVisualStyleBackColor = true;
+            btnCapture.Click += btnCapture_Click;
+            // 
+            // btnStartCam
+            // 
+            btnStartCam.Location = new Point(370, 243);
+            btnStartCam.Name = "btnStartCam";
+            btnStartCam.Size = new Size(174, 32);
+            btnStartCam.TabIndex = 9;
+            btnStartCam.Text = "Start Camera";
+            btnStartCam.UseVisualStyleBackColor = true;
+            btnStartCam.Click += btnStartCam_Click;
+            // 
+            // cmbCameras
+            // 
+            cmbCameras.FormattingEnabled = true;
+            cmbCameras.Location = new Point(368, 201);
+            cmbCameras.Name = "cmbCameras";
+            cmbCameras.Size = new Size(176, 23);
+            cmbCameras.TabIndex = 8;
             // 
             // btnIDSave
             // 
@@ -486,6 +520,7 @@
             Controls.Add(panelTop);
             Name = "frmGuest";
             Text = "frmGuest";
+            FormClosing += frmGuest_FormClosing;
             Load += frmGuest_Load;
             ((System.ComponentModel.ISupportInitialize)dgvBooking).EndInit();
             groupBox1.ResumeLayout(false);
@@ -542,5 +577,8 @@
         private TextBox txtPhone2;
         private TextBox txtExpiryDate;
         private TextBox txtProofNumber;
+        private Button btnCapture;
+        private Button btnStartCam;
+        private ComboBox cmbCameras;
     }
 }
