@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmPaymentCollectionReport));
             dtpMonthYear = new DateTimePicker();
             btnShow = new Button();
             webView21 = new Microsoft.Web.WebView2.WinForms.WebView2();
@@ -72,8 +73,9 @@
             Controls.Add(webView21);
             Controls.Add(btnShow);
             Controls.Add(dtpMonthYear);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "frmPaymentCollectionReport";
-            Text = "frmPaymentCollectionReport";
+            Text = "Month Wise Payment Collection Report";
             ((System.ComponentModel.ISupportInitialize)webView21).EndInit();
             ResumeLayout(false);
         }

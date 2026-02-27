@@ -112,34 +112,41 @@ namespace Hotel.Forms
         }
         private void btnGuestSave_Click(object sender, EventArgs e)
         {
-            TblGuest guest = new TblGuest
+            try
             {
-                HotelID = 1,
-                FirstName = txtGuestName.Text,
-                PhoneNumber = txtMobileNumber.Text,
-                PhoneNumber2 = txtPhone2.Text,
-                Email = txtEmail.Text,
-                Gender = Gender.Male
-            };
-            guestRepository.Add(guest);
+                TblGuest guest = new TblGuest
+                {
+                    HotelID = 1,
+                    FirstName = txtGuestName.Text,
+                    PhoneNumber = txtMobileNumber.Text,
+                    PhoneNumber2 = txtPhone2.Text,
+                    Email = txtEmail.Text,
+                    Gender = Gender.Male
+                };
+                guestRepository.Add(guest);
 
-            TblAddress address = new TblAddress
+                TblAddress address = new TblAddress
+                {
+                    HotelID = 1,
+                    AddressLine1 = txtAddress.Text,
+                    AddressLine2 = txtArea.Text,
+                    City = txtCity.Text,
+                    State = txtState.Text,
+                    Country = txtCountry.Text,
+                    GuestID = guest.ID,
+                    TableID = guest.ID,
+                    TableName = nameof(TblGuest)
+                };
+
+                addressRepository.Add(address);
+                fillGuestGrid();
+                MessageBox.Show("Guest information saved successfully.");
+                clearTexBoxes();
+            }
+            catch (Exception)
             {
-                HotelID = 1,
-                AddressLine1 = txtAddress.Text,
-                AddressLine2 = txtArea.Text,
-                City = txtCity.Text,
-                State = txtState.Text,
-                Country = txtCountry.Text,
-                GuestID = guest.ID,
-                TableID = guest.ID,
-                TableName = nameof(TblGuest)
-            };
-
-            addressRepository.Add(address);
-            fillGuestGrid();
-            MessageBox.Show("Guest information saved successfully.");
-            clearTexBoxes();
+                MessageBox.Show("Error while save Guest", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
         private void clearTexBoxes()
         {
@@ -243,7 +250,8 @@ namespace Hotel.Forms
         {
             if (cmbCameras.SelectedIndex < 0) return;
 
-            videoSource = new VideoCaptureDevice(videoDevices[cmbCameras.SelectedIndex].MonikerString);
+            videoSource = new VideoCaptureDevice(videoDevices?[cmbCameras.SelectedIndex].MonikerString);
+            if (videoSource == null) return;
             videoSource.NewFrame += (s, eventArgs) =>
             {
                 // Get the live frame
@@ -253,7 +261,6 @@ namespace Hotel.Forms
             };
             videoSource.Start();
         }
-
         private void btnCapture_Click(object sender, EventArgs e)
         {
             if (videoSource != null && videoSource.IsRunning)
@@ -262,13 +269,14 @@ namespace Hotel.Forms
 
                 // Save the current image to a temporary path so btnIDSave can use it
                 string tempPath = Path.Combine(Path.GetTempPath(), "captured_id.jpg");
-                picIDBox.Image.Save(tempPath, System.Drawing.Imaging.ImageFormat.Jpeg);
+                
+                if (picIDBox.Image != null)
+                    picIDBox.Image.Save(tempPath, System.Drawing.Imaging.ImageFormat.Jpeg);
 
                 selectedFilePath = tempPath; // Set this for your existing Save logic
                 MessageBox.Show("Photo Captured!");
             }
         }
-
         private void frmGuest_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (videoSource != null && videoSource.IsRunning)

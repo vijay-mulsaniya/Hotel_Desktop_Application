@@ -213,25 +213,32 @@ namespace Hotel.Forms
 
         private async void btnSavePdf_Click(object sender, EventArgs e)
         {
-            using (SaveFileDialog sfd = new SaveFileDialog())
+            try
             {
-                sfd.Filter = "PDF Files|*.pdf";
-                sfd.Title = "Save Invoice";
-                sfd.FileName = $"Invoice_{_invoice.InvoiceNumber}.pdf";
-
-                if (sfd.ShowDialog() == DialogResult.OK)
+                using (SaveFileDialog sfd = new SaveFileDialog())
                 {
-                    try
+                    sfd.Filter = "PDF Files|*.pdf";
+                    sfd.Title = "Save Invoice";
+                    sfd.FileName = $"Invoice_{_invoice.InvoiceNumber}.pdf";
+
+                    if (sfd.ShowDialog() == DialogResult.OK)
                     {
-                        // CoreWebView2.PrintToPdfAsync is the magic method here
-                        await webView21.CoreWebView2.PrintToPdfAsync(sfd.FileName);
-                        MessageBox.Show("Invoice saved successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Error saving PDF: {ex.Message}");
+                        try
+                        {
+                            // CoreWebView2.PrintToPdfAsync is the magic method here
+                            await webView21.CoreWebView2.PrintToPdfAsync(sfd.FileName);
+                            MessageBox.Show("Invoice saved successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show($"Error saving PDF: {ex.Message}");
+                        }
                     }
                 }
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Error while save Save PDF", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

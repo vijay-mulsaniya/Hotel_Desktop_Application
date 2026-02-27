@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmBooking));
             flowLayoutPanel1 = new FlowLayoutPanel();
             panelTop = new Panel();
             btnRefresh = new Button();
@@ -286,6 +287,7 @@
             ClientSize = new Size(1259, 548);
             Controls.Add(panelTop);
             Controls.Add(flowLayoutPanel1);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "frmBooking";
             Text = "Booking";
             Load += frmBooking_Load;

@@ -1,4 +1,5 @@
-﻿using Hotel.Data;
+﻿using Hotel.Common;
+using Hotel.Data;
 using Hotel.Dtos;
 using Hotel.Services;
 using Hotel.UserControls;
@@ -245,6 +246,8 @@ namespace Hotel.Forms
 
         private void dgvRoomGrid_CellClick(object sender, DataGridViewCellEventArgs e)
         {
+            if (!AppSession.IsInRole("Admin")) return; // Ignore if user is not Admin
+
             if (e.RowIndex < 0 || e.ColumnIndex <= 0) return; // Ignore header or Room column
 
             var cell = dgvRoomGrid.Rows[e.RowIndex].Cells[e.ColumnIndex];

@@ -59,6 +59,9 @@ namespace Hotel.Forms
         }
         private void frmBookNow_Load(object sender, EventArgs e)
         {
+            if (!AppSession.IsInRole("Admin")) { return; }
+
+
             gvBooking.AutoGenerateColumns = false;
             AddRoomBookingColumns();
             gvBooking.RowHeadersVisible = false;
@@ -369,59 +372,66 @@ namespace Hotel.Forms
         }
         private async void btnSave_Click(object sender, EventArgs e)
         {
-            btnSave.Enabled = false; // Disable the button to prevent multiple clicks
-
-            int currentNumber = 0;
-            TblTransactionSequence? transactionSequence;
-            string invoiceNumber;
-            int guestID = (int)cmbGuests.SelectedValue!;
-            var currentDate = DateTime.UtcNow.GetIndianTime();
-            roomService.GenerateInvoiceNumber(HotelID, out currentNumber, out transactionSequence, out invoiceNumber);
-
-            var guestStateCodes = paymentService.AllGuestStateCodes();
-            string stateCode = guestStateCodes.FirstOrDefault(x => x.GuestID == guestID)!.StateCode!;
-
-            transactionSequence!.LastNumber = currentNumber;
-            await roomService.AddNewBooking(new AddNewBookingDto
+            try
             {
-                BookingMaster = new TblBookingMaster
+                btnSave.Enabled = false; // Disable the button to prevent multiple clicks
+
+                int currentNumber = 0;
+                TblTransactionSequence? transactionSequence;
+                string invoiceNumber;
+                int guestID = (int)cmbGuests.SelectedValue!;
+                var currentDate = DateTime.UtcNow.GetIndianTime();
+                roomService.GenerateInvoiceNumber(HotelID, out currentNumber, out transactionSequence, out invoiceNumber);
+
+                var guestStateCodes = paymentService.AllGuestStateCodes();
+                string stateCode = guestStateCodes.FirstOrDefault(x => x.GuestID == guestID)!.StateCode!;
+
+                transactionSequence!.LastNumber = currentNumber;
+                await roomService.AddNewBooking(new AddNewBookingDto
                 {
-                    ID = 0,
-                    HotelID = HotelID,
-                    InvoiceNumber = invoiceNumber,
-                    InvoiceDate = currentDate,
-                    GuestID = (int)cmbGuests.SelectedValue!,
-                    CheckInDate = dtpFromDateTime.Value,
-                    CheckOutDate = bookingGridSource.LastOrDefault()!.Date!.Value.Date.AddDays(1).AddHours(8).AddMinutes(30),
-                    Discount = txtDiscount.Text != "" ? Convert.ToDecimal(txtDiscount.Text) : 0,
-                    InputTaxCredit = chkInputCreditTax.Checked,
-                    HotelStateCode = HotelStateCode,
-                    GuestStateCode = stateCode,
-                    IsGSTApplicable = chkIsGSTApplicable.Checked,
-                    IsTaxInclusive = chkISTaxInclusive.Checked,
-                    CreatedOn = currentDate,
-                    IsActive = true,
-                    IsDeleted = false
-                },
-                RoomBookings = bookingGridSource.ToList()
-            });
+                    BookingMaster = new TblBookingMaster
+                    {
+                        ID = 0,
+                        HotelID = HotelID,
+                        InvoiceNumber = invoiceNumber,
+                        InvoiceDate = currentDate,
+                        GuestID = (int)cmbGuests.SelectedValue!,
+                        CheckInDate = dtpFromDateTime.Value,
+                        CheckOutDate = bookingGridSource.LastOrDefault()!.Date!.Value.Date.AddDays(1).AddHours(8).AddMinutes(30),
+                        Discount = txtDiscount.Text != "" ? Convert.ToDecimal(txtDiscount.Text) : 0,
+                        InputTaxCredit = chkInputCreditTax.Checked,
+                        HotelStateCode = HotelStateCode,
+                        GuestStateCode = stateCode,
+                        IsGSTApplicable = chkIsGSTApplicable.Checked,
+                        IsTaxInclusive = chkISTaxInclusive.Checked,
+                        CreatedOn = currentDate,
+                        IsActive = true,
+                        IsDeleted = false
+                    },
+                    RoomBookings = bookingGridSource.ToList()
+                });
 
-            grpBox.Enabled = true;
+                grpBox.Enabled = true;
 
-            clearForm();
-            DialogResult result = MessageBox.Show(
-                                    "Booking saved successfully!\n\nWould you like to collect payment now?",
-                                    "Success",
-                                    MessageBoxButtons.YesNo,
-                                    MessageBoxIcon.Question);
+                clearForm();
+                DialogResult result = MessageBox.Show(
+                                        "Booking saved successfully!\n\nWould you like to collect payment now?",
+                                        "Success",
+                                        MessageBoxButtons.YesNo,
+                                        MessageBoxIcon.Question);
 
-            if (result == DialogResult.Yes)
-            {
-                _payment.MdiParent = this.MdiParent;
-                this.Close();
-                _payment.Show();
+                if (result == DialogResult.Yes)
+                {
+                    _payment.MdiParent = this.MdiParent;
+                    this.Close();
+                    _payment.Show();
+                }
+
             }
-
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred while saving the booking: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void clearForm()

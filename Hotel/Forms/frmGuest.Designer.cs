@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmGuest));
             dgvBooking = new DataGridView();
             groupBox1 = new GroupBox();
             radioButton3 = new RadioButton();
@@ -363,6 +364,7 @@
             groupBox2.TabIndex = 14;
             groupBox2.TabStop = false;
             groupBox2.Text = "Identity Info";
+            groupBox2.Visible = false;
             // 
             // btnCapture
             // 
@@ -518,8 +520,9 @@
             Controls.Add(dgvBooking);
             Controls.Add(groupBox1);
             Controls.Add(panelTop);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "frmGuest";
-            Text = "frmGuest";
+            Text = "Insert And View Guest Information";
             FormClosing += frmGuest_FormClosing;
             Load += frmGuest_Load;
             ((System.ComponentModel.ISupportInitialize)dgvBooking).EndInit();

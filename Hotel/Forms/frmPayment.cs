@@ -428,7 +428,8 @@ namespace Hotel.Forms
                 HeaderText = "Action",
                 Text = "Edit",
                 UseColumnTextForButtonValue = true,
-                FillWeight = 60
+                FillWeight = 60,
+                Visible = AppSession.IsInRole("Admin") || AppSession.IsInRole("Manager")
             });
             grdPaymentDetail.Columns.Add(new DataGridViewButtonColumn
             {
@@ -436,21 +437,29 @@ namespace Hotel.Forms
                 HeaderText = "Action",
                 Text = "Delete",
                 UseColumnTextForButtonValue = true,
-                FillWeight = 60
+                FillWeight = 60,
+                Visible = AppSession.IsInRole("Admin") || AppSession.IsInRole("Manager")
             });
         }
         #endregion
 
         private void DeleteRoomBooking(int id)
         {
-            string query = "DELETE FROM RoomBookings WHERE ID = @ID";
-
-            using (SqlConnection con = new SqlConnection(CommonMethods.GetConnectionString()))
-            using (SqlCommand cmd = new SqlCommand(query, con))
+            try
             {
-                cmd.Parameters.AddWithValue("@ID", id);
-                con.Open();
-                cmd.ExecuteNonQuery();
+                string query = "DELETE FROM RoomBookings WHERE ID = @ID";
+
+                using (SqlConnection con = new SqlConnection(CommonMethods.GetConnectionString()))
+                using (SqlCommand cmd = new SqlCommand(query, con))
+                {
+                    cmd.Parameters.AddWithValue("@ID", id);
+                    con.Open();
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Error while delete room booking", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         private void DeleteInvoiceMaster(int id)
@@ -482,14 +491,21 @@ namespace Hotel.Forms
         }
         private void DeletePayments(int id)
         {
-            string query = "DELETE FROM Payments WHERE ID = @ID";
-
-            using (SqlConnection con = new SqlConnection(CommonMethods.GetConnectionString()))
-            using (SqlCommand cmd = new SqlCommand(query, con))
+            try
             {
-                cmd.Parameters.AddWithValue("@ID", id);
-                con.Open();
-                cmd.ExecuteNonQuery();
+                string query = "DELETE FROM Payments WHERE ID = @ID";
+
+                using (SqlConnection con = new SqlConnection(CommonMethods.GetConnectionString()))
+                using (SqlCommand cmd = new SqlCommand(query, con))
+                {
+                    cmd.Parameters.AddWithValue("@ID", id);
+                    con.Open();
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Error while delete payments", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         private async void grdBilling_SelectionChanged(object sender, EventArgs e)
@@ -592,51 +608,58 @@ namespace Hotel.Forms
         }
         private async void btnAddPayment_Click(object sender, EventArgs e)
         {
-            var paymentMethod = cmbPaymentMethod.SelectedItem?.ToString() ?? "Cash";
-
-            PaymentMethod pmt = paymentMethod switch
+            try
             {
-                "Cash" => PaymentMethod.Cash,
-                "Online Transfer" => PaymentMethod.OnlinePayment,
-                "Credit Card" => PaymentMethod.CreditCard,
-                "Debit Card" => PaymentMethod.DebitCard,
-                _ => PaymentMethod.Cash
-            };
+                var paymentMethod = cmbPaymentMethod.SelectedItem?.ToString() ?? "Cash";
 
-            int selectedRoomId = 0;
-            if (cmbRoomNumber.SelectedValue is int roomId)
-                selectedRoomId = roomId;
+                PaymentMethod pmt = paymentMethod switch
+                {
+                    "Cash" => PaymentMethod.Cash,
+                    "Online Transfer" => PaymentMethod.OnlinePayment,
+                    "Credit Card" => PaymentMethod.CreditCard,
+                    "Debit Card" => PaymentMethod.DebitCard,
+                    _ => PaymentMethod.Cash
+                };
 
-            if (selectedRoomId <= 0)
-            {
-                MessageBox.Show("Please select room for payment", "Invalid Input", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                int selectedRoomId = 0;
+                if (cmbRoomNumber.SelectedValue is int roomId)
+                    selectedRoomId = roomId;
+
+                if (selectedRoomId <= 0)
+                {
+                    MessageBox.Show("Please select room for payment", "Invalid Input", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                var result = await paymentService.AddPayment(new PaymentDetailsDto
+                {
+                    HotelID = HotelID,
+                    RoomID = selectedRoomId,
+                    BookingMasterID = _currentBookingMasterID,
+                    Amount = Convert.ToDecimal(txtAmount.Text),
+                    PaymentDate = DateTime.UtcNow.GetIndianTime(),
+                    PaymentMethod = pmt,
+                    OnlineTransactionRefNumber = txtOnlineRefNumber.Text
+                });
+
+                if (result != null)
+                {
+                    txtAmount.Clear();
+                    cmbPaymentMethod.SelectedIndex = 0;
+                    txtOnlineRefNumber.Clear();
+
+                    txtSearch.Focus();
+                    MessageBox.Show("Payment added successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    frmPayment_Load(sender, e);
+                }
+                else
+                {
+                    MessageBox.Show("Failed to add payment. Please try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
-
-            var result = await paymentService.AddPayment(new PaymentDetailsDto
+            catch (Exception)
             {
-                HotelID = HotelID,
-                RoomID = selectedRoomId,
-                BookingMasterID = _currentBookingMasterID,
-                Amount = Convert.ToDecimal(txtAmount.Text),
-                PaymentDate = DateTime.UtcNow.GetIndianTime(),
-                PaymentMethod = pmt,
-                OnlineTransactionRefNumber = txtOnlineRefNumber.Text
-            });
-
-            if (result != null)
-            {
-                txtAmount.Clear();
-                cmbPaymentMethod.SelectedIndex = 0;
-                txtOnlineRefNumber.Clear();
-
-                txtSearch.Focus();
-                MessageBox.Show("Payment added successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                frmPayment_Load(sender, e);
-            }
-            else
-            {
-                MessageBox.Show("Failed to add payment. Please try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Error while add payment button click", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         private void btnShowInvoice_Click(object sender, EventArgs e)

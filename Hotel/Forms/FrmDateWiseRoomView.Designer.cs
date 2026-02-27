@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmDateWiseRoomView));
             panelTop = new Panel();
             btnRefresh = new Button();
             dtpTodate = new DateTimePicker();
@@ -118,8 +119,9 @@
             Controls.Add(dgvRoomGrid);
             Controls.Add(mainPanel);
             Controls.Add(panelTop);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "FrmDateWiseRoomView";
-            Text = "FrmDateWiseRoomView";
+            Text = "Date Wise Hotel Rooms View";
             Load += FrmDateWiseRoomView_Load;
             panelTop.ResumeLayout(false);
             panelTop.PerformLayout();

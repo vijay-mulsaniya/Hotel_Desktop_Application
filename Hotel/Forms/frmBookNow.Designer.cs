@@ -28,7 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmBookNow));
             panelTop = new Panel();
             label1 = new Label();
             label18 = new Label();
@@ -446,8 +447,8 @@
             // 
             gvBooking.AllowUserToAddRows = false;
             gvBooking.AllowUserToDeleteRows = false;
-            dataGridViewCellStyle2.BackColor = Color.FromArgb(224, 224, 224);
-            gvBooking.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle1.BackColor = Color.FromArgb(224, 224, 224);
+            gvBooking.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
             gvBooking.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             gvBooking.BackgroundColor = SystemColors.ControlLight;
             gvBooking.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
@@ -528,6 +529,7 @@
             Controls.Add(label5);
             Controls.Add(label9);
             Controls.Add(label4);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "frmBookNow";
             Text = "frmBookNow";
             Load += frmBookNow_Load;

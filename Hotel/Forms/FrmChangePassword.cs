@@ -21,28 +21,35 @@ namespace Hotel.Forms
 
         private async void btnSave_Click(object sender, EventArgs e)
         {
-            if (txtConfirmPassword.Text != txtNewPassword.Text)
+            try
             {
-                MessageBox.Show("New password and confirm password not match.", "Invaid input", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                if (txtConfirmPassword.Text != txtNewPassword.Text)
+                {
+                    MessageBox.Show("New password and confirm password not match.", "Invaid input", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(txtNewPassword.Text) ||
+                    string.IsNullOrWhiteSpace(txtOldPassword.Text) ||
+                    string.IsNullOrWhiteSpace(txtUserName.Text) ||
+                    string.IsNullOrWhiteSpace(txtUserName.Text)
+                    )
+                {
+                    MessageBox.Show("All are required fields please fill all textbox.", "Invaid input", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                bool result = await UpdatePassword(txtUserName.Text, txtOldPassword.Text, txtNewPassword.Text);
+
+                if (result)
+                {
+                    MessageBox.Show("Your password has been changed.", "Password Change", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    this.Close();
+                }
             }
-
-            if (string.IsNullOrWhiteSpace(txtNewPassword.Text) ||
-                string.IsNullOrWhiteSpace(txtOldPassword.Text) ||
-                string.IsNullOrWhiteSpace(txtUserName.Text) ||
-                string.IsNullOrWhiteSpace(txtUserName.Text)
-                )
+            catch (Exception)
             {
-                MessageBox.Show("All are required fields please fill all textbox.", "Invaid input", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            bool result = await UpdatePassword(txtUserName.Text, txtOldPassword.Text, txtNewPassword.Text);
-
-            if (result)
-            {
-                MessageBox.Show("Your password has been changed.", "Password Change", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                this.Close();
+                MessageBox.Show("Error while save password change", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

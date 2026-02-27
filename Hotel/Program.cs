@@ -60,6 +60,7 @@ internal static class Program
                 services.AddTransient<FrmRoomBookingEdit>();
                 services.AddTransient<FrmRoomBookingMasterEdit>();
                 services.AddTransient<FrmChangePassword>();
+                services.AddTransient<FrmIDUpload>();
             });
     }
 }

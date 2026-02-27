@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmPayment));
             panelTop = new Panel();
             pictureBox1 = new PictureBox();
             lblFormTitle = new Label();
@@ -51,6 +52,7 @@
             txtAmount = new TextBox();
             lblInvoiceNumber = new Label();
             lblGuestName = new Label();
+            label10 = new Label();
             lblAmount_ = new Label();
             lblTaxAmount = new Label();
             lblTotalAmount = new Label();
@@ -59,7 +61,6 @@
             label8 = new Label();
             label7 = new Label();
             gridRoomDetail = new DataGridView();
-            label10 = new Label();
             panelTop.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)grdBilling).BeginInit();
@@ -322,6 +323,15 @@
             lblGuestName.TabIndex = 4;
             lblGuestName.Text = "Name";
             // 
+            // label10
+            // 
+            label10.AutoSize = true;
+            label10.Location = new Point(536, 86);
+            label10.Name = "label10";
+            label10.Size = new Size(27, 15);
+            label10.TabIndex = 4;
+            label10.Text = "Tax:";
+            // 
             // lblAmount_
             // 
             lblAmount_.AutoSize = true;
@@ -401,15 +411,6 @@
             gridRoomDetail.Size = new Size(855, 485);
             gridRoomDetail.TabIndex = 0;
             // 
-            // label10
-            // 
-            label10.AutoSize = true;
-            label10.Location = new Point(536, 86);
-            label10.Name = "label10";
-            label10.Size = new Size(27, 15);
-            label10.TabIndex = 4;
-            label10.Text = "Tax:";
-            // 
             // frmPayment
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -417,8 +418,9 @@
             ClientSize = new Size(1675, 845);
             Controls.Add(splitContainer1);
             Controls.Add(panelTop);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "frmPayment";
-            Text = "Payments";
+            Text = "Payments And Billing Detail";
             Load += frmPayment_Load;
             panelTop.ResumeLayout(false);
             panelTop.PerformLayout();

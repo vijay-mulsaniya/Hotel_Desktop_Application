@@ -167,6 +167,7 @@
             Margin = new Padding(10);
             Name = "HotelRoomAvailable";
             Size = new Size(348, 248);
+            Load += HotelRoomAvailable_Load;
             ResumeLayout(false);
             PerformLayout();
         }

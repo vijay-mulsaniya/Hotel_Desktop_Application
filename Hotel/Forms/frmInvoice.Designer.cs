@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmInvoice));
             webView21 = new Microsoft.Web.WebView2.WinForms.WebView2();
             btnSavePdf = new Button();
             btnPrint = new Button();
@@ -76,8 +77,9 @@
             Controls.Add(btnPrint);
             Controls.Add(btnSavePdf);
             Controls.Add(webView21);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "frmInvoice";
-            Text = "frmInvoice";
+            Text = "Invoice Print Preview";
             Load += frmInvoice_Load;
             ((System.ComponentModel.ISupportInitialize)webView21).EndInit();
             ResumeLayout(false);

@@ -53,6 +53,7 @@
             btnBookNow = new ToolStripButton();
             btnReports = new ToolStripButton();
             btnChangePassword = new ToolStripButton();
+            toolStripButton1 = new ToolStripButton();
             mainStatusStrip = new StatusStrip();
             lblStatus = new ToolStripStatusLabel();
             statusLabelUserName = new ToolStripStatusLabel();
@@ -173,7 +174,7 @@
             // 
             // mainToolStrip
             // 
-            mainToolStrip.Items.AddRange(new ToolStripItem[] { btnAddGuest, btnMembers, btnReceipt, btnTransactions, btnBookNow, btnReports, btnChangePassword });
+            mainToolStrip.Items.AddRange(new ToolStripItem[] { btnAddGuest, toolStripButton1, btnMembers, btnReceipt, btnTransactions, btnBookNow, btnReports, btnChangePassword });
             mainToolStrip.Location = new Point(0, 24);
             mainToolStrip.Name = "mainToolStrip";
             mainToolStrip.Size = new Size(1164, 57);
@@ -262,6 +263,18 @@
             btnChangePassword.Text = "Change Password";
             btnChangePassword.Click += btnChangePassword_Click;
             // 
+            // toolStripButton1
+            // 
+            toolStripButton1.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            toolStripButton1.Image = Properties.Resources.Mobile_1;
+            toolStripButton1.ImageScaling = ToolStripItemImageScaling.None;
+            toolStripButton1.ImageTransparentColor = Color.Magenta;
+            toolStripButton1.Name = "toolStripButton1";
+            toolStripButton1.Size = new Size(54, 54);
+            toolStripButton1.Text = "ID Card Upload";
+            toolStripButton1.TextAlign = ContentAlignment.TopRight;
+            toolStripButton1.Click += toolStripButton1_Click;
+            // 
             // mainStatusStrip
             // 
             mainStatusStrip.Items.AddRange(new ToolStripItem[] { lblStatus, statusLabelUserName });
@@ -341,5 +354,6 @@
         private ToolStripButton btnAddGuest;
         private ToolStripButton btnChangePassword;
         private ToolStripStatusLabel statusLabelUserName;
+        private ToolStripButton toolStripButton1;
     }
 }

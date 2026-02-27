@@ -118,43 +118,46 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="Calander" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Calander.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="Guest_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Guest_1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="Invoice2" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Invoice2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="Time_2" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Time_2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="Money1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Money1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="Report" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Report.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="Key_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Key_1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Invoice2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Invoice2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="Invoice" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Invoice.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="Money1" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Money1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="Booking" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Booking.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="Time_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Time_1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="Invoice_3" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Invoice_3.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="Transaction" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Transaction.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Time_2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Time_2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Guest_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Guest_1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Invoice_3" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Invoice_3.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="Member" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Member.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="Key_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Key_1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="Calander" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Calander.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Booking" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Booking.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Mobile_1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Mobile_1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>

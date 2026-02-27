@@ -156,5 +156,11 @@ namespace Hotel.Forms
             var frm = serviceProvider.GetRequiredService<FrmChangePassword>();
             OpenChild(frm);
         }
+
+        private void toolStripButton1_Click(object sender, EventArgs e)
+        {
+            var frm = serviceProvider.GetRequiredService<FrmIDUpload>();
+            OpenChild(frm);
+        }
     }
 }

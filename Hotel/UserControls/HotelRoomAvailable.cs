@@ -231,27 +231,34 @@ namespace Hotel.UserControls
         }
         public void ProcessRoomCheckout(int bookingMasterId, int roomId)
         {
-            using (var db = new AppDbContext())
+            try
             {
-                // 1. Find the last night entry for this specific room in this booking
-                var lastNightEntry = db.RoomBookings
-                    .Where(rb => rb.BookingMasterID == bookingMasterId && rb.RoomID == roomId)
-                    .OrderByDescending(rb => rb.Date)
-                    .FirstOrDefault();
-
-                if (lastNightEntry != null)
+                using (var db = new AppDbContext())
                 {
-                    // 2. Mark as Checked Out
-                    lastNightEntry.IsCheckedOut = true;
-                    lastNightEntry.ActualCheckOutTime = DateTime.UtcNow.GetIndianTime(); // Records the exact moment
+                    // 1. Find the last night entry for this specific room in this booking
+                    var lastNightEntry = db.RoomBookings
+                        .Where(rb => rb.BookingMasterID == bookingMasterId && rb.RoomID == roomId)
+                        .OrderByDescending(rb => rb.Date)
+                        .FirstOrDefault();
 
-                    // 3. Mark as Dirty (Needs cleaning)
-                    lastNightEntry.IsCleaned = false;
+                    if (lastNightEntry != null)
+                    {
+                        // 2. Mark as Checked Out
+                        lastNightEntry.IsCheckedOut = true;
+                        lastNightEntry.ActualCheckOutTime = DateTime.UtcNow.GetIndianTime(); // Records the exact moment
 
-                    db.SaveChanges();
+                        // 3. Mark as Dirty (Needs cleaning)
+                        lastNightEntry.IsCleaned = false;
+
+                        db.SaveChanges();
+                    }
                 }
+                OnStatusChanged?.Invoke(this, EventArgs.Empty);
             }
-            OnStatusChanged?.Invoke(this, EventArgs.Empty);
+            catch (Exception)
+            {
+                MessageBox.Show("Error while process room checkout", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
         private void HandleMarkClean()
         {
@@ -271,19 +278,26 @@ namespace Hotel.UserControls
         }
         public void ProcessRoomCleaning(int roomId)
         {
-            using (var db = new AppDbContext())
+            try
             {
-                // Find the most recent record for this room that is checked out but not yet cleaned
-                var dirtyRecord = db.RoomBookings
-                    .Where(rb => rb.RoomID == roomId && rb.IsCheckedOut && !rb.IsCleaned)
-                    .OrderByDescending(rb => rb.Date)
-                    .FirstOrDefault();
-
-                if (dirtyRecord != null)
+                using (var db = new AppDbContext())
                 {
-                    dirtyRecord.IsCleaned = true;
-                    db.SaveChanges();
+                    // Find the most recent record for this room that is checked out but not yet cleaned
+                    var dirtyRecord = db.RoomBookings
+                        .Where(rb => rb.RoomID == roomId && rb.IsCheckedOut && !rb.IsCleaned)
+                        .OrderByDescending(rb => rb.Date)
+                        .FirstOrDefault();
+
+                    if (dirtyRecord != null)
+                    {
+                        dirtyRecord.IsCleaned = true;
+                        db.SaveChanges();
+                    }
                 }
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Error while save room cleaning", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         private void HandleNewBooking()
@@ -311,6 +325,9 @@ namespace Hotel.UserControls
             }
         }
 
-        
+        private void HotelRoomAvailable_Load(object sender, EventArgs e)
+        {
+            btnBookNow.Visible = AppSession.IsInRole("Admin");
+        }
     }
 }

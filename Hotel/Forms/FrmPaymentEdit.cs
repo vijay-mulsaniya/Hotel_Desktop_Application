@@ -58,28 +58,35 @@ namespace Hotel.Forms
 
         private void btnSave_Click(object sender, EventArgs e)
         {
-            PaymentDetailsDto modal = new PaymentDetailsDto
+            try
             {
-                ID = _data.ID,
-                BookingMasterID = _data.BookingMasterID,
-                Amount = txtAmountPaid.Text == "" ? 0 : Convert.ToDecimal(txtAmountPaid.Text),
-                PaymentDate = dtpPaymentDate.Value,
+                PaymentDetailsDto modal = new PaymentDetailsDto
+                {
+                    ID = _data.ID,
+                    BookingMasterID = _data.BookingMasterID,
+                    Amount = txtAmountPaid.Text == "" ? 0 : Convert.ToDecimal(txtAmountPaid.Text),
+                    PaymentDate = dtpPaymentDate.Value,
 
-                PaymentMethod = cmbPaymentMethods.SelectedValue != null
-                                ? (PaymentMethod)cmbPaymentMethods.SelectedValue
-                                : PaymentMethod.Cash,
+                    PaymentMethod = cmbPaymentMethods.SelectedValue != null
+                                        ? (PaymentMethod)cmbPaymentMethods.SelectedValue
+                                        : PaymentMethod.Cash,
 
-                OnlineTransactionRefNumber = txtOnlineRefNumber.Text,
-                RoomID = _data.RoomID,
-            };
+                    OnlineTransactionRefNumber = txtOnlineRefNumber.Text,
+                    RoomID = _data.RoomID,
+                };
 
-            var result = paymentService.EditPayments(modal);
+                var result = paymentService.EditPayments(modal);
 
-            MessageBox.Show("Save Successfully", "Success",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Save Successfully", "Success",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-            this.DialogResult = DialogResult.OK;
-            this.Close();
+                this.DialogResult = DialogResult.OK;
+                this.Close();
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Error while paymet edit", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }
