@@ -1,9 +1,11 @@
 ﻿using Hotel.Common;
+using Hotel.Data;
 using Hotel.Dtos;
 using Hotel.Dtos.PaymentDtos;
 using Hotel.Models;
 using Hotel.Services;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
 using System.Data;
 using System.Windows.Forms;
@@ -18,6 +20,7 @@ namespace Hotel.Forms
         private int _currentBookingMasterID = 0;
         private static int HotelID = 1;
         private BookingInvoiceDto invoiceModel = null!;
+        private bool _isLoadingDetails = false;
 
         [Browsable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -33,29 +36,78 @@ namespace Hotel.Forms
             this.paymentService = paymentService;
             gridRoomDetail.CellContentClick += gridRoomDetail_CellContentClick!;
         }
-
         private async void frmPayment_Load(object sender, EventArgs e)
         {
-            grdBilling.AutoGenerateColumns = false;
-            AddBillingGridColumns();
-            _allBillingData = await paymentService.BillingGrid();
-            grdBilling.DataSource = _allBillingData;
-            AddDetailsGridColumns();
-            AddPaymentGridColumns();
-
-            foreach (DataGridViewRow row in grdBilling.Rows)
+            try
             {
-                if (Convert.ToInt32(row.Cells[1].Value) == CurrentBookingID)
+                _isLoadingDetails = true;
+                grdBilling.AutoGenerateColumns = false;
+                AddBillingGridColumns();
+                AddDetailsGridColumns();
+                AddPaymentGridColumns();
+                ApplyPermissions();
+
+                _allBillingData = await paymentService.BillingGrid();
+                grdBilling.DataSource = _allBillingData;
+
+                if (CurrentBookingID > 0)
                 {
-                    grdBilling.CurrentCell = row.Cells[10]; // any visible cell to select the row....
-                    row.Selected = true;
-                    break;
+                    foreach (DataGridViewRow row in grdBilling.Rows)
+                    {
+                        if (row.DataBoundItem is BillingDto dto && dto.BookingMasterID == CurrentBookingID)
+                        {
+                            grdBilling.CurrentCell = row.Cells[2];
+                            row.Selected = true;
+                            _currentBookingMasterID = dto.BookingMasterID;
+                            break;
+                        }
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error on payment page load\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                _isLoadingDetails = false;
 
-            ApplyPermissions();
+                if (grdBilling.CurrentRow != null)
+                {
+                    grdBilling_SelectionChanged(this, EventArgs.Empty);
+                }
+            }
         }
-
+        private async Task RefreshMainGridAsync()
+        {
+            await _lock.WaitAsync();
+            try
+            {
+                _allBillingData = await paymentService.BillingGrid();
+                grdBilling.DataSource = null;
+                grdBilling.DataSource = _allBillingData;
+                if (_currentBookingMasterID > 0)
+                {
+                    foreach (DataGridViewRow row in grdBilling.Rows)
+                    {
+                        if (row.DataBoundItem is BillingDto dto && dto.BookingMasterID == _currentBookingMasterID)
+                        {
+                            grdBilling.CurrentCell = row.Cells[2]; // Focus on Guest Name
+                            row.Selected = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error refreshing data: {ex.Message}");
+            }
+            finally
+            {
+                _lock.Release();
+            }
+        }
         private void ApplyPermissions()
         {
             // Example: Only Admins can see the Settings button
@@ -63,7 +115,6 @@ namespace Hotel.Forms
         }
 
         #region Grid Column Generation
-
         private void AddBillingGridColumns()
         {
             grdBilling.Columns.Clear();
@@ -342,7 +393,7 @@ namespace Hotel.Forms
                 HeaderText = "Action",
                 Text = "Edit",
                 UseColumnTextForButtonValue = true,
-                FillWeight = 60,
+                FillWeight = 55,
                 Visible = AppSession.IsInRole("Admin") || AppSession.IsInRole("Manager")
             });
             gridRoomDetail.Columns.Add(new DataGridViewButtonColumn
@@ -351,7 +402,16 @@ namespace Hotel.Forms
                 HeaderText = "Action",
                 Text = "Delete",
                 UseColumnTextForButtonValue = true,
-                FillWeight = 60,
+                FillWeight = 55,
+                Visible = AppSession.IsInRole("Admin") || AppSession.IsInRole("Manager")
+            });
+            gridRoomDetail.Columns.Add(new DataGridViewButtonColumn
+            {
+                Name = "colCheckout",
+                HeaderText = "Action", // Use the same header as Edit/Delete to group them
+                Text = "Checkout",
+                UseColumnTextForButtonValue = false, // Set to false so CellFormatting can control text
+                FillWeight = 70,
                 Visible = AppSession.IsInRole("Admin") || AppSession.IsInRole("Manager")
             });
         }
@@ -443,122 +503,72 @@ namespace Hotel.Forms
         }
         #endregion
 
-        private void DeleteRoomBooking(int id)
+        private void UpdatePaymentLabels(BillingDto summary, List<RoomBookingDto> details)
         {
-            try
-            {
-                string query = "DELETE FROM RoomBookings WHERE ID = @ID";
+            lblInvoiceNumber.Text = summary.InvoiceNumber;
+            lblGuestName.Text = summary.GuestName;
+            lblTotalAmount.Text = summary.PayableAmount.ToString("C0");
+            lblPaidAmount.Text = summary.Paid.ToString("C0");
 
-                using (SqlConnection con = new SqlConnection(CommonMethods.GetConnectionString()))
-                using (SqlCommand cmd = new SqlCommand(query, con))
-                {
-                    cmd.Parameters.AddWithValue("@ID", id);
-                    con.Open();
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            catch (Exception)
-            {
-                MessageBox.Show("Error while delete room booking", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-        private void DeleteInvoiceMaster(int id)
-        {
-            string query = @"
-                    DELETE FROM Payments WHERE BookingMasterID = @ID;
-                    DELETE FROM RoomBookings WHERE BookingMasterID = @ID;
-                    DELETE FROM BookingMasters WHERE ID = @ID;";
+            decimal pendingAmount = summary.Pending;
+            decimal taxAmount = 0;
 
-            using (SqlConnection con = new SqlConnection(CommonMethods.GetConnectionString()))
-            using (SqlCommand cmd = new SqlCommand(query, con))
+            if (summary.IsGSTApplicable)
             {
-                cmd.Parameters.AddWithValue("@ID", id);
-                try
-                {
-                    con.Open();
-                    using (SqlTransaction transaction = con.BeginTransaction())
-                    {
-                        cmd.Transaction = transaction;
-                        int rowsAffected = cmd.ExecuteNonQuery();
-                        transaction.Commit();
-                    }
-                }
-                catch (SqlException ex)
-                {
-                    MessageBox.Show($"Database error occurred: {ex.Message}", "Delete Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-        }
-        private void DeletePayments(int id)
-        {
-            try
-            {
-                string query = "DELETE FROM Payments WHERE ID = @ID";
+                // Calculate tax based on room total minus discount
+                var lineItemSum = details.Sum(x => x.Amount);
+                var afterDiscountTotal = lineItemSum - summary.Discount;
+                taxAmount = afterDiscountTotal * 5 / 100;
 
-                using (SqlConnection con = new SqlConnection(CommonMethods.GetConnectionString()))
-                using (SqlCommand cmd = new SqlCommand(query, con))
-                {
-                    cmd.Parameters.AddWithValue("@ID", id);
-                    con.Open();
-                    cmd.ExecuteNonQuery();
-                }
+                pendingAmount += taxAmount;
             }
-            catch (Exception)
-            {
-                MessageBox.Show("Error while delete payments", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+
+            lblTaxAmount.Text = taxAmount.ToString("C2");
+            lblPendingAmount.Text = pendingAmount.ToString("C0");
+            lblPendingAmount.ForeColor = pendingAmount > 0 ? Color.Red : Color.Green;
         }
+
         private async void grdBilling_SelectionChanged(object sender, EventArgs e)
         {
+            if (_isLoadingDetails || grdBilling.CurrentRow == null) return;
             await _lock.WaitAsync();
 
             try
             {
+                _isLoadingDetails = true;
 
                 if (grdBilling.CurrentRow?.DataBoundItem is BillingDto row)
                 {
-                    if (row.BookingMasterID == 0) return;
-                    lblInvoiceNumber.Text = row.InvoiceNumber;
-                    lblGuestName.Text = row.GuestName;
                     _currentBookingMasterID = row.BookingMasterID;
-                    lblTotalAmount.Text = row.PayableAmount.ToString("C0");
-                    lblPaidAmount.Text = row.Paid.ToString("C0");
-                    lblPendingAmount.Text = row.Pending.ToString("C0");
-                    lblPendingAmount.ForeColor = row.Pending > 0 ? Color.Red : Color.Green;
 
+                    var roomsTask = paymentService.RoomBookings(_currentBookingMasterID);
+                    var paymentsTask = paymentService.GetPaymentDetails(_currentBookingMasterID);
 
-                    var data = await paymentService.RoomBookings(row.BookingMasterID);
-                    gridRoomDetail.DataSource = data;
+                    await Task.WhenAll(roomsTask, roomsTask); // Run both queries at once
 
-                    if (row.IsGSTApplicable)
-                    {
-                        var discount = row.Discount;
-                        var lineItemSum = data.Sum(x => x.Amount);
-                        var afterDiscountTotal = lineItemSum - discount;
-                        var taxAmount = afterDiscountTotal * 5 / 100;
+                    var roomData = await roomsTask ?? new List<RoomBookingDto>();
+                    var paymentData = await paymentsTask ?? new List<PaymentDetailsDto>();
 
-                        lblTaxAmount.Text = taxAmount.ToString("C2");
-                        lblPendingAmount.Text = (row.Pending + taxAmount).ToString("C0");
-                    }
-
-                    fillRoomsCombo(data);
-
-                    var paymentData = await paymentService.GetPaymentDetails(_currentBookingMasterID);
+                    gridRoomDetail.DataSource = roomData;
                     grdPaymentDetail.DataSource = paymentData;
 
-                    await invoiceModelPopup(row, data, paymentData);
+                    UpdatePaymentLabels(row, roomData);
+                    fillRoomsCombo(roomData);
+
+                    await invoiceModelPopup(row, roomData, paymentData);
                 }
             }
             catch (Exception ex)
             {
+                MessageBox.Show($"Error loading details: {ex.Message}");
                 Console.WriteLine(ex.Message);
             }
             finally
             {
+                _isLoadingDetails = false;
                 _lock.Release();
             }
         }
-
         private async Task invoiceModelPopup(BillingDto billingSummary, List<RoomBookingDto> roomDetails, List<PaymentDetailsDto> payments)
         {
             invoiceModel = new BookingInvoiceDto
@@ -599,17 +609,46 @@ namespace Hotel.Forms
         }
         private void txtSearch_TextChanged(object sender, EventArgs e)
         {
-            var filtered = _allBillingData
-                           .Where(x => x.GuestName
-                           .Contains(txtSearch.Text, StringComparison.OrdinalIgnoreCase))
-                           .ToList();
+            searchTimer.Stop();
+            searchTimer.Start();
+        }
+        private void ApplyFilter()
+        {
+            string searchText = txtSearch.Text.Trim();
 
+            var filtered = string.IsNullOrWhiteSpace(searchText)
+                ? _allBillingData
+                : _allBillingData.Where(x => x.GuestName.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            _isLoadingDetails = true;
+
+            grdBilling.DataSource = null;
             grdBilling.DataSource = filtered;
+
+            if (_currentBookingMasterID > 0)
+            {
+                foreach (DataGridViewRow row in grdBilling.Rows)
+                {
+                    if (row.DataBoundItem is BillingDto dto && dto.BookingMasterID == _currentBookingMasterID)
+                    {
+                        row.Selected = true;
+                        grdBilling.CurrentCell = row.Cells[2]; // Focus back to Guest Name
+                        break;
+                    }
+                }
+            }
+
+            _isLoadingDetails = false;
         }
         private async void btnAddPayment_Click(object sender, EventArgs e)
         {
+            bool lockAcquired = false;
+
             try
             {
+                await _lock.WaitAsync();
+                lockAcquired = true;
+
                 var paymentMethod = cmbPaymentMethod.SelectedItem?.ToString() ?? "Cash";
 
                 PaymentMethod pmt = paymentMethod switch
@@ -644,22 +683,29 @@ namespace Hotel.Forms
 
                 if (result != null)
                 {
+                    _lock.Release();
+                    lockAcquired = false;
+
                     txtAmount.Clear();
                     cmbPaymentMethod.SelectedIndex = 0;
                     txtOnlineRefNumber.Clear();
 
                     txtSearch.Focus();
                     MessageBox.Show("Payment added successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    frmPayment_Load(sender, e);
+                    await RefreshMainGridAsync();
                 }
                 else
                 {
                     MessageBox.Show("Failed to add payment. Please try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                MessageBox.Show("Error while add payment button click", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Error while add payment button click" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                if (lockAcquired) _lock.Release();
             }
         }
         private void btnShowInvoice_Click(object sender, EventArgs e)
@@ -673,7 +719,6 @@ namespace Hotel.Forms
             var frm = new frmInvoice(invoiceModel);
             frm.ShowDialog();
         }
-
         private async void gridRoomDetail_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
@@ -683,7 +728,6 @@ namespace Hotel.Forms
 
             string columnName = gridRoomDetail.Columns[e.ColumnIndex].Name;
 
-            // ================= EDIT =================
             if (columnName == "colEdit")
             {
                 using (var frm = new FrmRoomBookingEdit())
@@ -693,34 +737,42 @@ namespace Hotel.Forms
 
                     if (frm.ShowDialog() == DialogResult.OK)
                     {
-                        frmPayment_Load(sender, e);
+                        await RefreshMainGridAsync();
                     }
                 }
             }
-
-            // ================= DELETE =================
             else if (columnName == "colDelete")
             {
-                var confirm = MessageBox.Show(
-                     "Are you sure you want to delete this booking?",
-                     "Confirm Delete",
-                     MessageBoxButtons.YesNo,
-                     MessageBoxIcon.Warning);
+                var confirm = MessageBox.Show("Are you sure you want to delete this booking?", "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
 
                 if (confirm == DialogResult.Yes)
                 {
-                    DeleteRoomBooking(row.ID);
-                    MessageBox.Show("Deleted Successfully",
-                        "Success",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information);
+                    await _lock.WaitAsync();
+                    try
+                    {
+                        var success = await paymentService.DeleteRoomBookingAsync(row.ID);
+                        if (success) MessageBox.Show("Deleted Successfully");
+                    }
+                    finally
+                    {
+                        _lock.Release(); // 2. Release lock so Refresh can start
+                    }
 
-                    frmPayment_Load(sender, e);
+                    await RefreshMainGridAsync();
                 }
             }
-
+            else if (columnName == "colCheckout")
+            {
+                var rowData = gridRoomDetail.Rows[e.RowIndex].DataBoundItem as RoomBookingDto;
+                if (rowData != null && rowData.CheckoutButton)
+                {
+                    await ProcessRoomCheckout(rowData.ID);
+                    MessageBox.Show($"Checkout for Room {rowData.RoomNumber}", "Checkout Done.", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
         }
-        private void grdBilling_CellContentClick(object sender, DataGridViewCellEventArgs e)
+
+        private async void grdBilling_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
 
@@ -728,42 +780,45 @@ namespace Hotel.Forms
             if (row == null) return;
             string columnName = grdBilling.Columns[e.ColumnIndex].Name;
 
-            if (columnName == "colEdit")
+            if (columnName == "colEdit" || columnName == "colDelete")
             {
-                using (var frm = new FrmRoomBookingMasterEdit(paymentService))
+                if (columnName == "colDelete")
                 {
-                    frm.Data = row;
-
-                    if (frm.ShowDialog() == DialogResult.OK)
+                    var confirm = MessageBox.Show("Delete Invoice and ALL related data?", "Warning", MessageBoxButtons.YesNo);
+                    if (confirm == DialogResult.Yes)
                     {
-                        frmPayment_Load(sender, e);
+                        await _lock.WaitAsync();
+                        try
+                        {
+                            var success = await paymentService.DeleteInvoiceMasterAsync(row.ID);
+                            if (success)
+                            {
+                                _currentBookingMasterID = 0; // Clear selection
+                                MessageBox.Show("Invoice and all related data deleted.");
+                            }
+                        }
+                        finally
+                        {
+                            _lock.Release();
+                        }
+
+                        await RefreshMainGridAsync();
+                    }
+                }
+                else // Edit
+                {
+                    using (var frm = new FrmRoomBookingMasterEdit(paymentService))
+                    {
+                        frm.Data = row;
+                        if (frm.ShowDialog() == DialogResult.OK)
+                        {
+                            await RefreshMainGridAsync();
+                        }
                     }
                 }
             }
-
-            else if (columnName == "colDelete")
-            {
-                var confirm = MessageBox.Show(
-                   "Are you sure you want to delete this Invoice?,\nAll **Peyments**, and **Room bookings** releated to this invoce will be delted.",
-                   "Confirm Delete",
-                   MessageBoxButtons.YesNo,
-                   MessageBoxIcon.Warning);
-
-                if (confirm == DialogResult.Yes)
-                {
-                    DeleteInvoiceMaster(row.ID);
-                    MessageBox.Show("Deleted Successfully",
-                        "Success",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information);
-
-                    frmPayment_Load(sender, e);
-                }
-            }
-
-
         }
-        private void grdPaymentDetail_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        private async void grdPaymentDetail_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
 
@@ -783,27 +838,76 @@ namespace Hotel.Forms
                     }
                 }
             }
-
             else if (columnName == "colDelete")
             {
-                var confirm = MessageBox.Show(
-                    "Are you sure you want to delete this booking?",
-                    "Confirm Delete",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Warning);
+                var confirm = MessageBox.Show("Are you sure you want to delete this booking?", "Confirm Delete",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
 
                 if (confirm == DialogResult.Yes)
                 {
-                    DeletePayments(row.ID);
-                    MessageBox.Show("Deleted Successfully",
-                        "Success",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information);
+                    await _lock.WaitAsync();
+                    try
+                    {
+                        var success = await paymentService.DeletePaymentsAsync(row.ID);
+                        if (success) MessageBox.Show("Deleted Successfully");
+                    }
+                    finally
+                    {
+                        _lock.Release();
+                    }
 
-                    frmPayment_Load(sender, e);
+                    await RefreshMainGridAsync();
                 }
             }
 
+        }
+        private void gridRoomDetail_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+
+            if (gridRoomDetail.Columns[e.ColumnIndex].Name == "colCheckout")
+            {
+                var rowData = gridRoomDetail.Rows[e.RowIndex].DataBoundItem as RoomBookingDto;
+                if (rowData != null)
+                {
+                    // If it's the last row, show "Checkout", otherwise leave it blank
+                    e.Value = rowData.CheckoutButton ? "Checkout" : "";
+                }
+            }
+        }
+        private void searchTimer_Tick(object sender, EventArgs e)
+        {
+            ApplyFilter();
+        }
+
+        public async Task ProcessRoomCheckout(int roomBookingId)
+        {
+            try
+            {
+                using (var db = new AppDbContext())
+                {
+                    var lastNightEntry = db.RoomBookings.Include(x => x.Room)
+                                           .Where(rb => rb.ID == roomBookingId)
+                                           .FirstOrDefault();
+
+                    if (lastNightEntry != null)
+                    {
+                        lastNightEntry.IsCheckedOut = true;
+                        lastNightEntry.Room!.IsAvailable = true; // Make the room available immediately for new bookings
+                        lastNightEntry.ActualCheckOutTime = DateTime.UtcNow.GetIndianTime(); // Records the exact moment
+
+                        // 3. Mark as Dirty (Needs cleaning)
+                        lastNightEntry.IsCleaned = false;
+
+                        db.SaveChanges();
+                        await RefreshMainGridAsync();
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Error while process room checkout", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }

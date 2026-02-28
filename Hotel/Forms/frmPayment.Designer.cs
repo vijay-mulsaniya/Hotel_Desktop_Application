@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmPayment));
             panelTop = new Panel();
             pictureBox1 = new PictureBox();
@@ -61,6 +62,7 @@
             label8 = new Label();
             label7 = new Label();
             gridRoomDetail = new DataGridView();
+            searchTimer = new System.Windows.Forms.Timer(components);
             panelTop.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)grdBilling).BeginInit();
@@ -410,6 +412,12 @@
             gridRoomDetail.ReadOnly = true;
             gridRoomDetail.Size = new Size(855, 485);
             gridRoomDetail.TabIndex = 0;
+            gridRoomDetail.CellFormatting += gridRoomDetail_CellFormatting;
+            // 
+            // searchTimer
+            // 
+            searchTimer.Interval = 400;
+            searchTimer.Tick += searchTimer_Tick;
             // 
             // frmPayment
             // 
@@ -478,5 +486,6 @@
         private PictureBox pictureBox1;
         private Label lblTaxAmount;
         private Label label10;
+        private System.Windows.Forms.Timer searchTimer;
     }
 }

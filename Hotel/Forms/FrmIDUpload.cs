@@ -96,7 +96,7 @@ namespace Hotel.Forms
                 if (lstGrid.SelectedItems.Count == 0)
                     return;
 
-                int identityId = (int)lstGrid.SelectedItems[0].Tag!;
+                int identityId = Convert.ToInt32(lstGrid.SelectedItems[0].SubItems[0].Text!);
 
                 using (var db = new AppDbContext())
                 {
@@ -310,6 +310,14 @@ namespace Hotel.Forms
                 item.SubItems.Add(identity.ProofType);
                 item.Tag = guest.ID;
                 lstGrid.Items.Add(item);
+            }
+        }
+
+        private void FrmIDUpload_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (videoSource != null && videoSource.IsRunning)
+            {
+                videoSource.Stop();
             }
         }
     }

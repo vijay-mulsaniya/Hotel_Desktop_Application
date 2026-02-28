@@ -40,11 +40,25 @@ namespace Hotel.Forms
             lblTotalRooms.Text = roomData.TotalRooms.ToString();
             lblAsOn.Text = roomData.Daytype;
 
+            foreach (var titleCount in roomData.RoomStatusByTitle)
+            {
+                string count = $"Booked {titleCount.BookedCount} of {titleCount.TotalCount}";
+
+                if (titleCount.Title == "Deluxe Room")
+                    lblDeluxeTotal.Text = count;
+                else if (titleCount.Title == "Standard Room")
+                    lblStandardRoomCount.Text = count;
+                else if (titleCount.Title == "Dormitory")
+                    lblDormatryCount.Text = count;
+            }
+
             foreach (var room in roomData.RoomList)
             {
                 bool isCheckingOutToday = room.IsCheckOutCard;
                 bool isDirty = room.IsDirty;
                 bool lateCheckout = room.IsLateCheckout;
+                bool isAvailableRoomLevel = room.IsAvailableRoomLevel;
+                int overStayDays = room.OverStayDays;
 
                 if (!room.IsAvailable)
                 {
@@ -76,6 +90,8 @@ namespace Hotel.Forms
                         RoomTitle = room.RoomTitle!,
                         IsDirty = isDirty,
                         IsLateCheckout = lateCheckout,
+                        OverstayNights = overStayDays,
+                        IsAvailableRoomLevel = isAvailableRoomLevel,
 
                         Capacity = room.Capacity,
                         ChargesPerNight = room.Charges,
@@ -100,7 +116,7 @@ namespace Hotel.Forms
         {
             var dateOnly = selectedDate.Date;
             var yesterday = dateOnly.AddDays(-1);
-            TimeSpan checkoutDeadline = new TimeSpan(0, 10, 0);
+            TimeSpan checkoutDeadline = new TimeSpan(10, 0, 0);
 
             var relevantBookings = context.RoomBookings
             .Where(rb => rb.HotelID == HotelID &&
@@ -128,16 +144,41 @@ namespace Hotel.Forms
                             .Count(x => x.RoomID == rb.RoomID && x.NightStay == true),
                         PaidAmount = rb.BookingMaster.Payments
                             .Where(p => p.RoomID == rb.RoomID).Sum(p => p.AmountPaid)
-                    }).ToList();
+                    }).AsEnumerable() // switch to memory for date calculation
+                    .Select(x => new
+                    {
+                        x.RoomID,
+                        x.Date,
+                        x.Amount,
+                        x.AdultCount,
+                        x.ChildCount,
+                        x.IsCheckedOut,
+                        x.IsCleaned,
+                        x.BookingMasterID,
+                        x.GuestName,
+                        x.LastNightDate,
+                        x.Master,
+                        x.TotalBookingAmount,
+                        x.NightCount,
+                        x.PaidAmount,
+                        OverStayDays = x.LastNightDate != null &&
+                                       x.LastNightDate.Value.Date < dateOnly
+                            ? (dateOnly - x.LastNightDate.Value.Date).Days
+                            : 0
+                    })
+                    .ToList();
 
-            var allRooms = context.Rooms.Where(r => r.HotelID == HotelID).ToList();
+            var allRooms = context.Rooms.Where(r => r.HotelID == HotelID).ToList(); //***** && r.ID == 15
 
             var roomList = allRooms.Select(x =>
             {
                 var stayedLastNight = relevantBookings.FirstOrDefault(b => b.RoomID == x.ID && b.Date.Date == yesterday);
                 var stayingTonight = relevantBookings.FirstOrDefault(b => b.RoomID == x.ID && b.Date.Date == dateOnly);
 
-                bool isCheckingOutToday = (stayedLastNight != null) && (stayingTonight == null) && (!stayedLastNight.IsCheckedOut);
+                var sameInvoiceOtherEntryFound = stayedLastNight != null ? context.RoomBookings.Any(bk => bk.BookingMasterID == stayedLastNight.BookingMasterID
+                                                                                && bk.Date!.Value.Date > stayedLastNight.Date.Date) : false;
+
+                bool isCheckingOutToday = (stayedLastNight != null) && (stayingTonight == null) && (!stayedLastNight.IsCheckedOut) && !sameInvoiceOtherEntryFound;
                 bool isDirty = stayedLastNight != null && stayedLastNight.IsCheckedOut && !stayedLastNight.IsCleaned;
                 var displayBooking = stayingTonight ?? stayedLastNight;
                 bool isLate = false;
@@ -148,6 +189,8 @@ namespace Hotel.Forms
                         isLate = true;
                     }
                 }
+
+                var roomLevelFlag = x.IsAvailable;
 
                 return new BookedRoomDto
                 {
@@ -160,6 +203,8 @@ namespace Hotel.Forms
                     IsCheckOutCard = isCheckingOutToday,
                     IsDirty = isDirty,
                     IsLateCheckout = isLate,
+                    IsAvailableRoomLevel = roomLevelFlag,
+                    OverStayDays = displayBooking != null ? displayBooking.OverStayDays : 0,
 
                     GuestName = displayBooking?.GuestName,
                     CheckInDate = displayBooking?.Master?.CheckInDate,

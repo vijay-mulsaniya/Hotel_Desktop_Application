@@ -83,9 +83,9 @@
             lblFormTitle.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold, GraphicsUnit.Point, 0);
             lblFormTitle.Location = new Point(24, 17);
             lblFormTitle.Name = "lblFormTitle";
-            lblFormTitle.Size = new Size(148, 25);
+            lblFormTitle.Size = new Size(249, 25);
             lblFormTitle.TabIndex = 0;
-            lblFormTitle.Text = "Date Wise View";
+            lblFormTitle.Text = "Booking Stay && Checkouts";
             // 
             // mainPanel
             // 

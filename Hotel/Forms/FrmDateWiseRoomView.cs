@@ -27,8 +27,8 @@ namespace Hotel.Forms
             this.roomService = roomService;
             this.serviceProvider = serviceProvider;
             this.mainForm = mainForm;
-            dtpFromDate.Value = DateTime.Now.Date.AddDays(-5);
-            dtpTodate.Value = DateTime.Now.Date.Date.AddDays(20);
+            dtpFromDate.Value = DateTime.Now.Date.AddDays(-8);
+            dtpTodate.Value = DateTime.Now.Date.Date.AddDays(18);
             mainPanel.FlowDirection = FlowDirection.TopDown;
         }
 
@@ -45,7 +45,6 @@ namespace Hotel.Forms
 
             await PopulateGridData();
         }
-
 
         private async Task PopulateGridData()
         {

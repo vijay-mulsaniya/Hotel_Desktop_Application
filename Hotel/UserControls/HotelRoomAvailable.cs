@@ -2,6 +2,7 @@
 using Hotel.Data;
 using Hotel.Forms;
 using Hotel.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using OfficeOpenXml;
 using System;
@@ -24,6 +25,8 @@ namespace Hotel.UserControls
         private bool _isLateCheckout;
         private int _bookingMasterId;
         public event EventHandler? OnStatusChanged;
+        private int _overstayNights;
+        private bool _isAvailableRoomLevel;
 
         public HotelRoomAvailable(IServiceProvider serviceProvider, MainForm mainForm)
         {
@@ -32,6 +35,7 @@ namespace Hotel.UserControls
             this.mainForm = mainForm;
         }
 
+        #region Properties
         [Browsable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public string GuestName
@@ -102,6 +106,26 @@ namespace Hotel.UserControls
 
         [Browsable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public int OverstayNights
+        {
+            get => _overstayNights;
+            set => _overstayNights = value;
+        }
+
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public bool IsAvailableRoomLevel
+        {
+            get => _isAvailableRoomLevel;
+            set
+            {
+                _isAvailableRoomLevel = value;
+            }
+        }
+
+
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public bool IsCheckOutCard
         {
             get => _isCheckOutCard;
@@ -136,12 +160,13 @@ namespace Hotel.UserControls
             }
         }
 
+        #endregion
         private void UpdateStatusUI()
         {
             lblCheckOutToday.Visible = false;
             lblGuestName.Visible = !string.IsNullOrEmpty(GuestName);
 
-            if (IsCheckOutCard)
+            if (IsCheckOutCard) 
             {
                 lblCheckOutToday.Visible = true;
 
@@ -236,7 +261,7 @@ namespace Hotel.UserControls
                 using (var db = new AppDbContext())
                 {
                     // 1. Find the last night entry for this specific room in this booking
-                    var lastNightEntry = db.RoomBookings
+                    var lastNightEntry = db.RoomBookings.Include(x => x.Room)
                         .Where(rb => rb.BookingMasterID == bookingMasterId && rb.RoomID == roomId)
                         .OrderByDescending(rb => rb.Date)
                         .FirstOrDefault();
@@ -244,7 +269,9 @@ namespace Hotel.UserControls
                     if (lastNightEntry != null)
                     {
                         // 2. Mark as Checked Out
+
                         lastNightEntry.IsCheckedOut = true;
+                        lastNightEntry.Room!.IsAvailable = true; // Make the room available immediately for new bookings
                         lastNightEntry.ActualCheckOutTime = DateTime.UtcNow.GetIndianTime(); // Records the exact moment
 
                         // 3. Mark as Dirty (Needs cleaning)
@@ -306,12 +333,9 @@ namespace Hotel.UserControls
 
             if (bookNow != null)
             {
-
                 bookNow.SelectedRoomId = RoomId;
                 bookNow.SelectedCheckInDate = SelectedCheckInDate;
                 bookNow.MdiParent = this.mainForm;
-                bookNow.WindowState = FormWindowState.Maximized;
-
                 foreach (var form in mainForm.MdiChildren)
                 {
                     if (form is frmBookNow)
@@ -322,6 +346,7 @@ namespace Hotel.UserControls
                 }
 
                 bookNow.Show();
+                bookNow.WindowState = FormWindowState.Maximized;
             }
         }
 

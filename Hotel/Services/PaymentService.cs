@@ -22,18 +22,25 @@ namespace Hotel.Services
         Task<bool> EditInvoiceMaster(BillingDto data);
         Task<bool> EditPayments(PaymentDetailsDto data);
         Task<List<ListboxItemAvailableRooms>> RoomsByInvoice(int invoiceID);
+        Task<bool> DeleteRoomBookingAsync(int id);
+        Task<bool> DeleteInvoiceMasterAsync(int id);
+        Task<bool> DeletePaymentsAsync(int id);
     }
     public class PaymentService : IPaymentService
     {
-        private readonly AppDbContext context;
+        //private readonly AppDbContext context;
         private static int HotelID = 1;
+        private readonly IDbContextFactory<AppDbContext> factory;
 
-        public PaymentService(AppDbContext context)
+        public PaymentService(IDbContextFactory<AppDbContext> factory)
         {
-            this.context = context;
+            this.factory = factory;
+
+            //this.context = context;
         }
         public async Task<List<GuestComboBoxItem>> Guests()
         {
+            using var context = await factory.CreateDbContextAsync();
             return await context.Guests.Where(g => g.HotelID == HotelID)
                                  .OrderBy(x => x.FirstName)
                                  .Select(x => new GuestComboBoxItem
@@ -45,6 +52,7 @@ namespace Hotel.Services
         }
         public async Task<List<(string stateCode, string stateName)>> GuestStates()
         {
+            using var context = await factory.CreateDbContextAsync();
             var states = await context.States
                                .OrderBy(x => x.StateName)
                                .Select(x => new { x.StateCode, x.StateName })
@@ -55,7 +63,7 @@ namespace Hotel.Services
         public async Task<List<BillingDto>> BillingGrid()
         {
             //var guestStateCodes = AllGuestStateCodes();
-
+            using var context = await factory.CreateDbContextAsync();
             var data = await context.BookingMasters
                 .AsNoTracking()
                 .Where(b => b.HotelID == HotelID)
@@ -77,7 +85,7 @@ namespace Hotel.Services
                     GuestStateCode = b.GuestStateCode,
                     IsGSTApplicable = b.IsGSTApplicable,
                     IsTaxInclusive = b.IsTaxInclusive,
-                    
+
 
                     // Let's change how we sum to be more robust
                     Total = b.RoomBookings
@@ -103,6 +111,7 @@ namespace Hotel.Services
         }
         public List<GuestStateCode> AllGuestStateCodes()
         {
+            using var context = factory.CreateDbContext();
             return context.Addresses.Select(x => new GuestStateCode
             {
                 GuestID = x.GuestID ?? 0,
@@ -112,33 +121,41 @@ namespace Hotel.Services
         }
         public async Task<List<RoomBookingDto>> RoomBookings(int bookingMasterID)
         {
+            using var context = await factory.CreateDbContextAsync();
             var roomBookings = await context.RoomBookings
-                .AsNoTracking()
-                .Where(rb => rb.BookingMasterID == bookingMasterID)
-                .Select(rb => new RoomBookingDto
-                {
-                    ID = rb.ID,
-                    HotelID = rb.HotelID,
-                    BookingMasterID = rb.BookingMasterID,
-                    RoomID = rb.RoomID,
-                    GuestID = rb.GuestID,
-                    Status = rb.Status,
-                    Date = rb.Date,
-                    NightStay = rb.NightStay,
-                    NightStaySymbol = rb.NightStay == true ? "✔" : "✘",
-                    AdultCount = rb.AdultCount,
-                    ChildCount = rb.ChildCount,
-                    Amount = rb.Amount,
-                    GuestName = rb.Guest != null ? rb.Guest.FirstName! : "Unknown",
-                    RoomNumber = rb.Room != null ? rb.Room.RoomNumber! : "Unknown",
-                    RoomTitle = rb.Room != null ? rb.Room.RoomTitle! : "Unknown",
-                    //Room = rb.Room,
-                    //Guest = rb.Guest
-                }).ToListAsync();
+                           .AsNoTracking()
+                           .Where(rb => rb.BookingMasterID == bookingMasterID)
+                           .Select(rb => new
+                                {
+                                    Booking = rb,
+                                    IsLastEntry = rb.IsCheckedOut == false ? context.RoomBookings.Where(x => x.RoomID == rb.RoomID
+                                                    && x.BookingMasterID == bookingMasterID)
+                                                    .Max(x => x.ID) == rb.ID : false
+                                })
+                        .Select(x => new RoomBookingDto
+                        {
+                            ID = x.Booking.ID,
+                            HotelID = x.Booking.HotelID,
+                            BookingMasterID = x.Booking.BookingMasterID,
+                            RoomID = x.Booking.RoomID,
+                            GuestID = x.Booking.GuestID,
+                            Status = x.Booking.Status,
+                            Date = x.Booking.Date,
+                            NightStay = x.Booking.NightStay,
+                            NightStaySymbol = x.Booking.NightStay == true ? "✔" : "✘",
+                            AdultCount = x.Booking.AdultCount,
+                            ChildCount = x.Booking.ChildCount,
+                            Amount = x.Booking.Amount,
+                            GuestName = x.Booking.Guest != null ? x.Booking.Guest.FirstName! : "Unknown",
+                            RoomNumber = x.Booking.Room != null ? x.Booking.Room.RoomNumber! : "Unknown",
+                            RoomTitle = x.Booking.Room != null ? x.Booking.Room.RoomTitle! : "Unknown",
+                            CheckoutButton = x.IsLastEntry
+                        }).ToListAsync();
             return roomBookings;
         }
         public async Task<List<PaymentDetailsDto>> GetPaymentDetails(int bookingMasterID)
         {
+            using var context = await factory.CreateDbContextAsync();
             var payment = await context.Payments
                 .Where(p => p.BookingMasterID == bookingMasterID)
                 .OrderByDescending(p => p.PaymentDate)
@@ -159,6 +176,7 @@ namespace Hotel.Services
         }
         public async Task<PaymentDetailsDto> AddPayment(PaymentDetailsDto form)
         {
+            using var context = await factory.CreateDbContextAsync();
             if (form.Amount <= 0)
                 throw new InvalidOperationException("Invalid payment amount");
 
@@ -188,6 +206,7 @@ namespace Hotel.Services
         }
         public async Task<PaymentCollectionReportDto> MonthlyPaymentCollectionReport(int month, int year)
         {
+            using var context = await factory.CreateDbContextAsync();
             var data = await context.Payments.AsNoTracking()
                         .Include(x => x.Room)
                         .Include(x => x.BookingMaster).ThenInclude(g => g!.Guest)
@@ -229,6 +248,7 @@ namespace Hotel.Services
         }
         public async Task<bool> EditInvoiceMaster(BillingDto data)
         {
+            using var context = await factory.CreateDbContextAsync();
             var invoice = context.BookingMasters.FirstOrDefault(x => x.ID == data.ID);
             if (invoice == null) throw new Exception("invoice not found or deleted");
 
@@ -257,6 +277,7 @@ namespace Hotel.Services
         }
         public async Task<bool> EditPayments(PaymentDetailsDto data)
         {
+            using var context = await factory.CreateDbContextAsync();
             var payment = context.Payments.FirstOrDefault(x => x.ID == data.ID);
             if (payment == null) throw new Exception("Payment not found or deleted");
 
@@ -286,8 +307,39 @@ namespace Hotel.Services
                                  .ToList();
             return distinctRooms;
         }
-    }
+       
+        public async Task<bool> DeleteRoomBookingAsync(int id)
+        {
+            using var context = await factory.CreateDbContextAsync();
+            var booking = await context.RoomBookings.FindAsync(id);
+            if (booking == null) return false;
 
+            context.RoomBookings.Remove(booking);
+            return await context.SaveChangesAsync() > 0;
+        }
+        public async Task<bool> DeleteInvoiceMasterAsync(int id)
+        {
+            using var context = await factory.CreateDbContextAsync();
+            var master = await context.BookingMasters
+                .Include(x => x.RoomBookings)
+                .Include(x => x.Payments)
+                .FirstOrDefaultAsync(x => x.ID == id);
+
+            if (master == null) return false;
+
+            context.BookingMasters.Remove(master);
+            return await context.SaveChangesAsync() > 0;
+        }
+        public async Task<bool> DeletePaymentsAsync(int id)
+        {
+            using var context = await factory.CreateDbContextAsync();
+            var booking = await context.Payments.FindAsync(id);
+            if (booking == null) return false;
+
+            context.Payments.Remove(booking);
+            return await context.SaveChangesAsync() > 0;
+        }
+    }
     public class GuestStateCode
     {
         public int GuestID { get; set; }

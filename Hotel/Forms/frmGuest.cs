@@ -26,6 +26,7 @@ namespace Hotel.Forms
             this.addressRepository = addressRepository;
             this.cityRepository = cityRepository;
         }
+
         private void fillGuestGrid()
         {
             guestList = guestRepository
@@ -33,6 +34,70 @@ namespace Hotel.Forms
                     .Where(x => x.HotelID == 1)
                     .ToList();
 
+            dgvBooking.DataSource = null;
+            dgvBooking.DataSource = guestList;
+        }
+
+        private void frmGuest_Load(object sender, EventArgs e)
+        {
+            SetupGuestGrid();
+            fillGuestGrid();
+            GetCityNames();
+            BindStates();
+
+            var source = new AutoCompleteStringCollection();
+            source.AddRange(cityList.Select(x => x.CityName).ToArray());
+
+            if (guestList.Any())
+            {
+                var guestSource = new AutoCompleteStringCollection();
+                guestSource.AddRange(guestList.Select(x => x!.FirstName).ToArray()!);
+                txtGuestName.AutoCompleteSource = AutoCompleteSource.CustomSource;
+                txtGuestName.AutoCompleteMode = AutoCompleteMode.Suggest;
+                txtGuestName.AutoCompleteCustomSource = guestSource;
+
+                var mobileSource = new AutoCompleteStringCollection();
+                mobileSource.AddRange(guestList.Select(x => x!.PhoneNumber).ToArray()!);
+                txtMobileNumber.AutoCompleteSource = AutoCompleteSource.CustomSource;
+                txtMobileNumber.AutoCompleteMode = AutoCompleteMode.Suggest;
+                txtMobileNumber.AutoCompleteCustomSource = mobileSource;
+            }
+
+            txtCity.AutoCompleteSource = AutoCompleteSource.CustomSource;
+            txtCity.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            txtCity.AutoCompleteCustomSource = source;
+
+            videoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
+            foreach (FilterInfo device in videoDevices)
+            {
+                cmbCameras.Items.Add(device.Name);
+            }
+            if (cmbCameras.Items.Count > 0) cmbCameras.SelectedIndex = 0;
+        }
+
+        private void BindStates()
+        {
+            var statesList = new List<string> {
+                "-- Select State --",
+                "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
+                "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand",
+                "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
+                "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan",
+                "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh",
+                "Uttarakhand", "West Bengal"
+            };
+
+            cmbStates.DataSource = statesList;
+            cmbStates.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbStates.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbStates.DropDownStyle = ComboBoxStyle.DropDownList; // Prevents typing fake states
+        }
+        private void GetCityNames()
+        {
+            cityList = cityRepository.GetAll();
+        }
+        private void SetupGuestGrid()
+        {
             dgvBooking.AutoGenerateColumns = false;
             dgvBooking.Columns.Clear();
 
@@ -69,51 +134,14 @@ namespace Hotel.Forms
             });
 
             dgvBooking.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-
-            dgvBooking.DataSource = guestList;
-        }
-        private void frmGuest_Load(object sender, EventArgs e)
-        {
-            fillGuestGrid();
-            GetCityNames();
-
-            var source = new AutoCompleteStringCollection();
-            source.AddRange(cityList.Select(x => x.CityName).ToArray());
-
-            if (guestList.Any())
-            {
-                var guestSource = new AutoCompleteStringCollection();
-                guestSource.AddRange(guestList.Select(x => x!.FirstName).ToArray()!);
-                txtGuestName.AutoCompleteSource = AutoCompleteSource.CustomSource;
-                txtGuestName.AutoCompleteMode = AutoCompleteMode.Suggest;
-                txtGuestName.AutoCompleteCustomSource = guestSource;
-
-                var mobileSource = new AutoCompleteStringCollection();
-                mobileSource.AddRange(guestList.Select(x => x!.PhoneNumber).ToArray()!);
-                txtMobileNumber.AutoCompleteSource = AutoCompleteSource.CustomSource;
-                txtMobileNumber.AutoCompleteMode = AutoCompleteMode.Suggest;
-                txtMobileNumber.AutoCompleteCustomSource = mobileSource;
-            }
-
-            txtCity.AutoCompleteSource = AutoCompleteSource.CustomSource;
-            txtCity.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
-            txtCity.AutoCompleteCustomSource = source;
-
-            videoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
-            foreach (FilterInfo device in videoDevices)
-            {
-                cmbCameras.Items.Add(device.Name);
-            }
-            if (cmbCameras.Items.Count > 0) cmbCameras.SelectedIndex = 0;
-        }
-        private void GetCityNames()
-        {
-            cityList = cityRepository.GetAll();
         }
         private void btnGuestSave_Click(object sender, EventArgs e)
         {
             try
             {
+                bool flowControl = ValidateSaveAction();
+                if (!flowControl) return;
+
                 TblGuest guest = new TblGuest
                 {
                     HotelID = 1,
@@ -131,7 +159,7 @@ namespace Hotel.Forms
                     AddressLine1 = txtAddress.Text,
                     AddressLine2 = txtArea.Text,
                     City = txtCity.Text,
-                    State = txtState.Text,
+                    State = cmbStates.SelectedItem!.ToString(),
                     Country = txtCountry.Text,
                     GuestID = guest.ID,
                     TableID = guest.ID,
@@ -148,6 +176,29 @@ namespace Hotel.Forms
                 MessageBox.Show("Error while save Guest", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
+        private bool ValidateSaveAction()
+        {
+            if (string.IsNullOrEmpty(txtGuestName.Text) || string.IsNullOrEmpty(txtMobileNumber.Text))
+            {
+                MessageBox.Show("Please enter both Guest Name and Mobile Number.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(txtCity.Text))
+            {
+                MessageBox.Show("Please enter both City Name and State.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            if (cmbStates.SelectedIndex <= 0)
+            {
+                MessageBox.Show("Please select a valid State.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            return true;
+        }
         private void clearTexBoxes()
         {
             txtMobileNumber.Text = string.Empty;
@@ -157,7 +208,7 @@ namespace Hotel.Forms
             txtAddress.Text = string.Empty;
             txtArea.Text = string.Empty;
             txtCity.Text = string.Empty;
-            txtState.Text = string.Empty;
+            cmbStates.SelectedIndex = 0;
             txtCountry.Text = "India";
             txtPhone2.Text = string.Empty;
             txtMobileNumber.Focus();
@@ -266,10 +317,8 @@ namespace Hotel.Forms
             if (videoSource != null && videoSource.IsRunning)
             {
                 videoSource.SignalToStop(); // Freeze the frame
-
-                // Save the current image to a temporary path so btnIDSave can use it
                 string tempPath = Path.Combine(Path.GetTempPath(), "captured_id.jpg");
-                
+
                 if (picIDBox.Image != null)
                     picIDBox.Image.Save(tempPath, System.Drawing.Imaging.ImageFormat.Jpeg);
 

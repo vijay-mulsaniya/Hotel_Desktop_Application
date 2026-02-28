@@ -17,17 +17,20 @@ namespace Hotel.Services
     {
         private readonly IRepository<TblBookingMaster> bookingMasterRepo;
         private readonly IRepository<TblRoomBooking> roomBookingRepo;
-        private readonly AppDbContext context;
+        private readonly IDbContextFactory<AppDbContext> factory;
+        //private readonly AppDbContext context;
         private static int HotelID = 1;
 
-        public RoomService(IRepository<TblBookingMaster> bookingMasterRepo, IRepository<TblRoomBooking> roomBookingRepo, AppDbContext context)
+        public RoomService(IRepository<TblBookingMaster> bookingMasterRepo, IRepository<TblRoomBooking> roomBookingRepo, IDbContextFactory<AppDbContext> factory)
         {
             this.bookingMasterRepo = bookingMasterRepo;
             this.roomBookingRepo = roomBookingRepo;
-            this.context = context;
+            this.factory = factory;
+            //this.context = context;
         }
         public async Task<AddNewBookingDto> AddNewBooking(AddNewBookingDto bookingDto)
         {
+            using var context = await factory.CreateDbContextAsync();
             await bookingMasterRepo.AddAsync(bookingDto.BookingMaster);
             var bookingMasterID = bookingDto.BookingMaster.ID;
 
@@ -35,6 +38,15 @@ namespace Hotel.Services
             {
                 roomBooking.BookingMasterID = bookingMasterID;
                 await roomBookingRepo.AddAsync(roomBooking);
+                var roomID = roomBooking.RoomID;
+                var room = await context.Rooms.FindAsync(roomID);
+                if (room != null)
+                {
+                    room.IsAvailable = false;
+                    room.IsClean = false;
+                    context.Rooms.Update(room);
+                    await context.SaveChangesAsync();
+                }
             }
 
             return bookingDto;
@@ -42,6 +54,7 @@ namespace Hotel.Services
         public List<TblRoom> GetAvailableRooms(DateTime fromDate, DateTime toDate)
         {
             // checkout date (excluded)
+            using var context = factory.CreateDbContext();
             var availableRooms = context.Rooms
                 .Where(r => r.HotelID == 1)
                 .Where(r => r.IsAvailable)
@@ -58,6 +71,7 @@ namespace Hotel.Services
         }
         public void GenerateInvoiceNumber(int HotelId, out int currentNumber, out TblTransactionSequence? transactionSequence, out string invoiceNumber)
         {
+            using var context = factory.CreateDbContext();
             transactionSequence = context.TransactionSequences.FirstOrDefault(x => x.HotelID == HotelId && x.TransactionTypeId == 1); //1 == Invoice
             if (transactionSequence == null || transactionSequence.LastNumber == 0)
             {
@@ -70,9 +84,9 @@ namespace Hotel.Services
 
             invoiceNumber = $"INV-{currentNumber:D5}";
         }
-
         public async Task<DateWiseRoomViewDto> dateWiseRoomView(DateTime fromDate, DateTime toDate)
         {
+            using var context = await factory.CreateDbContextAsync();
             DateWiseRoomViewDto viewDto = new DateWiseRoomViewDto();
             var roomBoxes = await RoomBoxDtos();
 
@@ -84,7 +98,8 @@ namespace Hotel.Services
                                 {
                                     RoomId = x.RoomID,
                                     BookedDate = x.Date!.Value.Date,
-                                    GuestName = x.Guest!.FirstName
+                                    GuestName = x.Guest!.FirstName,
+                                    IsCheckOut = x.IsCheckedOut
                                 }).ToListAsync();
 
             foreach (var roomBox in roomBoxes)
@@ -97,9 +112,9 @@ namespace Hotel.Services
             }
             return viewDto;
         }
-
         public async Task<List<RoomBoxDto>> RoomBoxDtos()
         {
+            using var context = await factory.CreateDbContextAsync();
             var roomBoxes = await context.Rooms.AsNoTracking().Select(x => new RoomBoxDto
             {
                 RoomId = x.ID,
@@ -108,13 +123,13 @@ namespace Hotel.Services
             }).ToListAsync();
             return roomBoxes;
         }
-
         public List<DateBoxDto> DateBoxes(int roomId, List<BokkingDatesDto> bookings, DateTime fromDate, DateTime toDate)
         {
             List<DateBoxDto> dateBoxes = new List<DateBoxDto>();
             for (DateTime date = fromDate.Date; date <= toDate.Date; date = date.AddDays(1))
             {
                 var isBooked = bookings.Any(x => x.BookedDate == date);
+                var isCheckout = bookings.Any(x => x.BookedDate == date && x.IsCheckOut == true);
                 DateBoxDto dateBoxDto = new DateBoxDto
                 {
                     RoomId = roomId,
@@ -122,7 +137,8 @@ namespace Hotel.Services
                     MonthLabel = date.ToString("MM-yyyy"),
                     IsBooked = isBooked,
                     GuestName = isBooked ? bookings.FirstOrDefault(x => x.BookedDate == date)!.GuestName : null,
-                    BoxDate = date
+                    BoxDate = date,
+                    IsCheckOut = isCheckout
                 };
                 dateBoxes.Add(dateBoxDto);
             }

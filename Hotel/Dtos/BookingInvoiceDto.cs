@@ -88,6 +88,7 @@ namespace Hotel.Dtos
         public int ChildCount { get; set; } = 0;
         public int NumberOfGuests { get { return AdultCount + ChildCount; } }
         public decimal Amount { get; set; }
+        public bool CheckoutButton { get; set; } = false;
         public TblHotel? Hotel { get; set; }
         public TblRoom? Room { get; set; }
         public TblGuest? Guest { get; set; }

@@ -482,20 +482,20 @@
             // label10
             // 
             label10.AutoSize = true;
-            label10.Location = new Point(214, 79);
+            label10.Location = new Point(216, 79);
             label10.Name = "label10";
-            label10.Size = new Size(57, 15);
+            label10.Size = new Size(65, 15);
             label10.TabIndex = 13;
-            label10.Text = "Check-IN";
+            label10.Text = "From Date:";
             // 
             // label11
             // 
             label11.AutoSize = true;
-            label11.Location = new Point(503, 79);
+            label11.Location = new Point(532, 79);
             label11.Name = "label11";
-            label11.Size = new Size(69, 15);
+            label11.Size = new Size(50, 15);
             label11.TabIndex = 13;
-            label11.Text = "Check-OUT";
+            label11.Text = "To Date:";
             // 
             // frmBookNow
             // 

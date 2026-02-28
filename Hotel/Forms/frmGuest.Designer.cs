@@ -31,6 +31,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmGuest));
             dgvBooking = new DataGridView();
             groupBox1 = new GroupBox();
+            cmbStates = new ComboBox();
             radioButton3 = new RadioButton();
             radioButton2 = new RadioButton();
             radioButton1 = new RadioButton();
@@ -46,7 +47,6 @@
             label2 = new Label();
             txtCountry = new TextBox();
             txtPhone2 = new TextBox();
-            txtState = new TextBox();
             txtArea = new TextBox();
             txtAddress = new TextBox();
             txtCity = new TextBox();
@@ -92,6 +92,7 @@
             // 
             // groupBox1
             // 
+            groupBox1.Controls.Add(cmbStates);
             groupBox1.Controls.Add(radioButton3);
             groupBox1.Controls.Add(radioButton2);
             groupBox1.Controls.Add(radioButton1);
@@ -107,7 +108,6 @@
             groupBox1.Controls.Add(label2);
             groupBox1.Controls.Add(txtCountry);
             groupBox1.Controls.Add(txtPhone2);
-            groupBox1.Controls.Add(txtState);
             groupBox1.Controls.Add(txtArea);
             groupBox1.Controls.Add(txtAddress);
             groupBox1.Controls.Add(txtCity);
@@ -120,6 +120,14 @@
             groupBox1.TabIndex = 1;
             groupBox1.TabStop = false;
             groupBox1.Text = "Guest Information";
+            // 
+            // cmbStates
+            // 
+            cmbStates.FormattingEnabled = true;
+            cmbStates.Location = new Point(397, 203);
+            cmbStates.Name = "cmbStates";
+            cmbStates.Size = new Size(169, 23);
+            cmbStates.TabIndex = 9;
             // 
             // radioButton3
             // 
@@ -259,16 +267,6 @@
             txtPhone2.Name = "txtPhone2";
             txtPhone2.Size = new Size(169, 23);
             txtPhone2.TabIndex = 11;
-            // 
-            // txtState
-            // 
-            txtState.AutoCompleteCustomSource.AddRange(new string[] { "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal" });
-            txtState.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
-            txtState.AutoCompleteSource = AutoCompleteSource.CustomSource;
-            txtState.Location = new Point(397, 206);
-            txtState.Name = "txtState";
-            txtState.Size = new Size(169, 23);
-            txtState.TabIndex = 9;
             // 
             // txtArea
             // 
@@ -549,7 +547,6 @@
         private Label label3;
         private Label label2;
         private TextBox txtCountry;
-        private TextBox txtState;
         private TextBox txtArea;
         private TextBox txtAddress;
         private TextBox txtCity;
@@ -583,5 +580,6 @@
         private Button btnCapture;
         private Button btnStartCam;
         private ComboBox cmbCameras;
+        private ComboBox cmbStates;
     }
 }

@@ -103,7 +103,6 @@
             cmbGuestNames.Name = "cmbGuestNames";
             cmbGuestNames.Size = new Size(233, 23);
             cmbGuestNames.TabIndex = 0;
-            
             // 
             // btnIDSave
             // 
@@ -240,7 +239,7 @@
             lblFormTitle.ForeColor = SystemColors.ButtonFace;
             lblFormTitle.Location = new Point(0, 0);
             lblFormTitle.Name = "lblFormTitle";
-            lblFormTitle.Size = new Size(1285, 56);
+            lblFormTitle.Size = new Size(1315, 56);
             lblFormTitle.TabIndex = 17;
             lblFormTitle.Text = "ID Information Upload";
             lblFormTitle.TextAlign = ContentAlignment.MiddleCenter;
@@ -252,7 +251,7 @@
             lstGrid.GridLines = true;
             lstGrid.Location = new Point(923, 117);
             lstGrid.Name = "lstGrid";
-            lstGrid.Size = new Size(339, 662);
+            lstGrid.Size = new Size(362, 662);
             lstGrid.TabIndex = 2;
             lstGrid.UseCompatibleStateImageBehavior = false;
             lstGrid.View = View.Details;
@@ -278,7 +277,7 @@
             txtSearch.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
             txtSearch.Location = new Point(982, 73);
             txtSearch.Name = "txtSearch";
-            txtSearch.Size = new Size(280, 29);
+            txtSearch.Size = new Size(303, 29);
             txtSearch.TabIndex = 1;
             txtSearch.TextChanged += txtSearch_TextChanged;
             // 
@@ -295,7 +294,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1285, 801);
+            ClientSize = new Size(1315, 801);
             Controls.Add(label2);
             Controls.Add(txtSearch);
             Controls.Add(lstGrid);
@@ -309,6 +308,7 @@
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "FrmIDUpload";
             Text = "Upload ID Information";
+            FormClosing += FrmIDUpload_FormClosing;
             Load += FrmIDUpload_Load;
             groupBox2.ResumeLayout(false);
             groupBox2.PerformLayout();

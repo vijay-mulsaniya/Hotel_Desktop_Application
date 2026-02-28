@@ -28,7 +28,6 @@ namespace Hotel.Forms
         List<ListboxItemAvailableRooms> availableRooms = new List<ListboxItemAvailableRooms>();
         private static int HotelID = 1; // Assuming hotel ID is 1 for this example;
         private static string HotelStateCode = "GJ";
-       
 
         [Browsable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -61,7 +60,6 @@ namespace Hotel.Forms
         {
             if (!AppSession.IsInRole("Admin")) { return; }
 
-
             gvBooking.AutoGenerateColumns = false;
             AddRoomBookingColumns();
             gvBooking.RowHeadersVisible = false;
@@ -83,7 +81,6 @@ namespace Hotel.Forms
 
             listBox1.SelectedValue = SelectedRoomId;
         }
-
         private void ResetFromToDate()
         {
             var now = SelectedCheckInDate;
@@ -100,7 +97,6 @@ namespace Hotel.Forms
                 }
             };
         }
-
         private void AddRoomBookingColumns()
         {
             gvBooking.Columns.Add(new DataGridViewTextBoxColumn
@@ -176,7 +172,6 @@ namespace Hotel.Forms
                 DefaultCellStyle = new DataGridViewCellStyle { Format = "C0" }
             });
         }
-
         private List<GuestComboBoxItem> Guests()
         {
             return context.Guests.Where(g => g.HotelID == HotelID)
@@ -197,7 +192,7 @@ namespace Hotel.Forms
 
             var availableRooms = context.Rooms
                 .Where(r => r.HotelID == HotelID)
-                .Where(r => r.IsAvailable)
+                .Where(r => r.IsAvailable || (!r.IsAvailable && fromDate.Date > DateTime.UtcNow.Date))
                 .Where(r =>
                     !r.RoomBookings.Any(rb =>
                         rb.Status == BookingStatus.Booked &&
@@ -235,14 +230,13 @@ namespace Hotel.Forms
             listBox1.DisplayMember = "DisplayName";
             listBox1.ValueMember = "ID";
             listBox1.SelectedIndex = -1;
-            
+
             return availableRooms;
         }
         private void btnGo_Click(object sender, EventArgs e)
         {
             GetAvailableRooms();
         }
-
         private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (listBox1.SelectedItems.Count == 0)
@@ -255,16 +249,29 @@ namespace Hotel.Forms
             }
 
             // Join all selected items into a single string
-            lblSelectedRooms.Text = string.Join(", ",
-                listBox1.SelectedItems.Cast<ListboxItemAvailableRooms>().Select(item => item.RoomNumber!.ToString()));
+            NightStayLabelUpdate();
 
             btnAddToGrid.Enabled = true;
             grpBox.Enabled = true;
         }
+        private void NightStayLabelUpdate()
+        {
+            lblSelectedRooms.Text = "";
+            lblSelectedRooms.Text = string.Join(", ",
+                listBox1.SelectedItems.Cast<ListboxItemAvailableRooms>().Select(item => item.RoomNumber!.ToString()));
 
+            DateTime checkIn = dtpFromDateTime.Value.Date;
+            DateTime checkOut = dtpToDateTime.Value.Date;
+            TimeSpan difference = checkOut - checkIn;
+            int totalDays = (int)difference.TotalDays;
+            lblSelectedRooms.Text += $" | Stay: {totalDays} night(s)";
+        }
         private void btnAddToGrid_Click(object sender, EventArgs e)
         {
-            btnAddToGrid.Enabled = false; // Disable the button to prevent multiple clicks
+            btnAddToGrid.Enabled = false;
+            bool flowControl = Validations();
+            if (!flowControl) return;
+
             DateTime fromDate = dtpFromDateTime.Value;
             DateTime toDate = dtpToDateTime.Value;
             var selectedGuest = cmbGuests.SelectedItem as GuestComboBoxItem;
@@ -291,7 +298,6 @@ namespace Hotel.Forms
                         // Assuming price per night is a property of TblRoom
                     });
                 }
-
                 //Removed Last Day Entry
                 //bookingGridSource.Add(new TblRoomBooking
                 //{
@@ -307,7 +313,6 @@ namespace Hotel.Forms
                 //    ChildCount = Convert.ToInt32(txtChild.Text),
                 //    Amount = 0
                 //});
-
             }
 
             CalculateTotals();
@@ -315,7 +320,6 @@ namespace Hotel.Forms
             btnSave.Enabled = true;
             btnCancel.Enabled = true;
         }
-
         private void CalculateTotals()
         {
             var selectedGuest = cmbGuests.SelectedItem as GuestComboBoxItem;
@@ -374,7 +378,12 @@ namespace Hotel.Forms
         {
             try
             {
-                btnSave.Enabled = false; // Disable the button to prevent multiple clicks
+                btnSave.Enabled = false;
+                bool flowControl = Validations();
+                if (!flowControl)
+                {
+                    return;
+                }
 
                 int currentNumber = 0;
                 TblTransactionSequence? transactionSequence;
@@ -384,8 +393,19 @@ namespace Hotel.Forms
                 roomService.GenerateInvoiceNumber(HotelID, out currentNumber, out transactionSequence, out invoiceNumber);
 
                 var guestStateCodes = paymentService.AllGuestStateCodes();
-                string stateCode = guestStateCodes.FirstOrDefault(x => x.GuestID == guestID)!.StateCode!;
+                var guestState = guestStateCodes.FirstOrDefault(x => x.GuestID == guestID);
 
+                if (guestState == null || string.IsNullOrWhiteSpace(guestState.StateCode))
+                {
+                    MessageBox.Show("Guest state is missing. Please update guest address before booking.",
+                                    "Missing State",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Warning);
+                    btnSave.Enabled = true;
+                    return;
+                }
+
+                string stateCode = guestState.StateCode;
                 transactionSequence!.LastNumber = currentNumber;
                 await roomService.AddNewBooking(new AddNewBookingDto
                 {
@@ -414,17 +434,20 @@ namespace Hotel.Forms
                 grpBox.Enabled = true;
 
                 clearForm();
-                DialogResult result = MessageBox.Show(
-                                        "Booking saved successfully!\n\nWould you like to collect payment now?",
-                                        "Success",
-                                        MessageBoxButtons.YesNo,
-                                        MessageBoxIcon.Question);
+
+                var sequenceToUpdate = await context.TransactionSequences.Where(x => x.HotelID == HotelID && x.TransactionTypeId == 1).FirstOrDefaultAsync();
+                sequenceToUpdate!.LastNumber = currentNumber;
+                await context.SaveChangesAsync();
+
+                DialogResult result = MessageBox.Show("Booking saved successfully!\n\nWould you like to collect payment now?",
+                                        "Success", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
                 if (result == DialogResult.Yes)
                 {
                     _payment.MdiParent = this.MdiParent;
                     this.Close();
                     _payment.Show();
+                    _payment.WindowState = FormWindowState.Maximized;
                 }
 
             }
@@ -433,7 +456,26 @@ namespace Hotel.Forms
                 MessageBox.Show("An error occurred while saving the booking: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+        private bool Validations()
+        {
+            if (string.IsNullOrWhiteSpace(txtAdult.Text))
+            { MessageBox.Show("Adult count is required"); { txtAdult.Focus(); return false; } }
 
+            if (string.IsNullOrWhiteSpace(txtChild.Text))
+            { MessageBox.Show("Child count is required"); { txtChild.Focus(); return false; } }
+
+            if (string.IsNullOrWhiteSpace(txtPricePerNight.Text))
+            { MessageBox.Show("Per night charges is required"); { txtPricePerNight.Focus(); return false; } }
+
+            if (cmbGuests.SelectedIndex < 0)
+            {
+                MessageBox.Show("No guest selected!", "Required Field");
+                cmbGuests.Focus();
+                return false;
+            }
+
+            return true;
+        }
         private void clearForm()
         {
             txtDiscount.Text = "0";
@@ -454,7 +496,6 @@ namespace Hotel.Forms
             dtpFromDateTime.Focus();
             grpBox.Enabled = true;
         }
-
         private void gvBooking_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e)
         {
             for (int i = 0; i < e.RowCount; i++)
@@ -473,19 +514,17 @@ namespace Hotel.Forms
                 }
             }
         }
-
         private void btnCancel_Click(object sender, EventArgs e)
         {
             clearForm();
         }
-
         private void dtpFromDateTime_Leave(object sender, EventArgs e)
         {
             var now = dtpFromDateTime.Value;
             dtpToDateTime.MinDate = dtpFromDateTime.Value.AddHours(1);
             dtpToDateTime.Value = now.Date.AddDays(1).AddHours(8).AddMinutes(30);
+            NightStayLabelUpdate();
         }
-
         private void txtPricePerNight_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
@@ -493,7 +532,6 @@ namespace Hotel.Forms
                 e.Handled = true;
             }
         }
-
         private void txtPricePerNight_Validating(object sender, CancelEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(txtPricePerNight.Text))
@@ -516,7 +554,6 @@ namespace Hotel.Forms
                 txtPricePerNight.SelectAll();
             }
         }
-
         private void txtAdult_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
@@ -524,7 +561,6 @@ namespace Hotel.Forms
                 e.Handled = true;
             }
         }
-
         private void txtAdult_Leave(object sender, EventArgs e)
         {
             if (int.TryParse(txtAdult.Text, out int value))
@@ -536,7 +572,6 @@ namespace Hotel.Forms
                 txtAdult.Text = "0";
             }
         }
-
         private void txtChild_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
@@ -544,7 +579,6 @@ namespace Hotel.Forms
                 e.Handled = true;
             }
         }
-
         private void txtChild_Leave(object sender, EventArgs e)
         {
             if (int.TryParse(txtChild.Text, out int value))
@@ -566,7 +600,7 @@ namespace Hotel.Forms
 
     public class ListboxItemAvailableRooms
     {
-        public int ID {  set; get; }
+        public int ID { set; get; }
         public string RoomNumber { set; get; } = null!;
         public string DisplayName { get; set; } = string.Empty;
         public bool IsCheckoutToday { get; set; }

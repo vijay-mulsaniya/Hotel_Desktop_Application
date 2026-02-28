@@ -1,7 +1,11 @@
 ﻿using Hotel.Data;
 using Hotel.Forms;
 using Hotel.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using System.ComponentModel;
+using System.Runtime.InteropServices.JavaScript;
 
 namespace Hotel.UserControls
 {
@@ -125,14 +129,14 @@ namespace Hotel.UserControls
 
         private void btnView_Click(object sender, EventArgs e)
         {
-            AppDbContext dbContext = new AppDbContext();
-            IPaymentService service = new PaymentService(dbContext);
-
+            var factory = Program.ServiceProvider.GetRequiredService<IDbContextFactory<AppDbContext>>();
+            IPaymentService service = new PaymentService(factory);
             using (frmPayment paymentForm = new frmPayment(service))
             {
                 paymentForm.CurrentBookingID = BookingMasterId ?? 0;
                 paymentForm.StartPosition = FormStartPosition.CenterParent;
-
+                paymentForm.WindowState = FormWindowState.Maximized;
+               
                 DialogResult result = paymentForm.ShowDialog();
             }
         }

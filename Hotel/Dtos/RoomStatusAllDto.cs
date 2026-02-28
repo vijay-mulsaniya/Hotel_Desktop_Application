@@ -63,5 +63,7 @@
         public bool IsCheckOutCard { get; set; }
         public bool IsDirty { get; set; }
         public bool IsLateCheckout { get; set; }
+        public bool IsAvailableRoomLevel { get; set; }
+        public int OverStayDays { get; set; }
     }
 }
