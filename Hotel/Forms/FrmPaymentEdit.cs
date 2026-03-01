@@ -38,7 +38,8 @@ namespace Hotel.Forms
             cmbPaymentMethods.Items.Clear();
             cmbPaymentMethods.DataSource = Enum.GetValues(typeof(PaymentMethod))
                                             .Cast<PaymentMethod>()
-                                            .Select(e => new {
+                                            .Select(e => new
+                                            {
                                                 Value = e,
                                                 DisplayName = CommonMethods.GetEnumDescription(e)
                                             }).ToList();
@@ -60,6 +61,26 @@ namespace Hotel.Forms
         {
             try
             {
+                // Validate input
+                if (string.IsNullOrWhiteSpace(txtAmountPaid.Text) || !decimal.TryParse(txtAmountPaid.Text, out _))
+                {
+                    MessageBox.Show("Please enter a valid amount.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                if (cmbPaymentMethods.SelectedValue == null)
+                {
+                    MessageBox.Show("Please select a payment method.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                if (cmbRoom.SelectedValue == null)
+                {
+                    MessageBox.Show("Please select a room.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+
                 PaymentDetailsDto modal = new PaymentDetailsDto
                 {
                     ID = _data.ID,
@@ -86,6 +107,14 @@ namespace Hotel.Forms
             catch (Exception)
             {
                 MessageBox.Show("Error while paymet edit", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void txtAmountPaid_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+            {
+                e.Handled = true;
             }
         }
     }

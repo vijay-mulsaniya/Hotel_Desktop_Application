@@ -372,7 +372,6 @@
             btnCapture.TabIndex = 9;
             btnCapture.Text = "Capture";
             btnCapture.UseVisualStyleBackColor = true;
-            btnCapture.Click += btnCapture_Click;
             // 
             // btnStartCam
             // 
@@ -382,7 +381,6 @@
             btnStartCam.TabIndex = 9;
             btnStartCam.Text = "Start Camera";
             btnStartCam.UseVisualStyleBackColor = true;
-            btnStartCam.Click += btnStartCam_Click;
             // 
             // cmbCameras
             // 
@@ -521,7 +519,7 @@
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "frmGuest";
             Text = "Insert And View Guest Information";
-            FormClosing += frmGuest_FormClosing;
+            
             Load += frmGuest_Load;
             ((System.ComponentModel.ISupportInitialize)dgvBooking).EndInit();
             groupBox1.ResumeLayout(false);

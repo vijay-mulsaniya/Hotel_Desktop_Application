@@ -4,11 +4,9 @@ using Hotel.Dtos;
 using Hotel.Dtos.PaymentDtos;
 using Hotel.Models;
 using Hotel.Services;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
 using System.Data;
-using System.Windows.Forms;
 
 namespace Hotel.Forms
 {
@@ -527,7 +525,6 @@ namespace Hotel.Forms
             lblPendingAmount.Text = pendingAmount.ToString("C0");
             lblPendingAmount.ForeColor = pendingAmount > 0 ? Color.Red : Color.Green;
         }
-
         private async void grdBilling_SelectionChanged(object sender, EventArgs e)
         {
             if (_isLoadingDetails || grdBilling.CurrentRow == null) return;
@@ -646,6 +643,13 @@ namespace Hotel.Forms
 
             try
             {
+                var validate = ValidateSaveButton();
+                if (!validate)
+                {
+                    MessageBox.Show("Please check Room Number, Amount and Payment Method and correct.", "Invalid User Input", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
                 await _lock.WaitAsync();
                 lockAcquired = true;
 
@@ -708,6 +712,15 @@ namespace Hotel.Forms
                 if (lockAcquired) _lock.Release();
             }
         }
+
+        private bool ValidateSaveButton()
+        {
+            return decimal.TryParse(txtAmount.Text, out decimal amount)
+                    && amount > 0
+                    && cmbRoomNumber.SelectedValue != null
+                    && cmbPaymentMethod.SelectedIndex >= 0;
+        }
+
         private void btnShowInvoice_Click(object sender, EventArgs e)
         {
             if (invoiceModel == null)
@@ -771,7 +784,6 @@ namespace Hotel.Forms
                 }
             }
         }
-
         private async void grdBilling_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
@@ -879,7 +891,6 @@ namespace Hotel.Forms
         {
             ApplyFilter();
         }
-
         public async Task ProcessRoomCheckout(int roomBookingId)
         {
             try
@@ -907,6 +918,14 @@ namespace Hotel.Forms
             catch (Exception)
             {
                 MessageBox.Show("Error while process room checkout", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void txtAmount_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+            {
+                e.Handled = true;
             }
         }
     }

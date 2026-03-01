@@ -18,12 +18,12 @@ internal static class Program
         var host = CreateHostBuilder().Build();
         ServiceProvider = host.Services;
         ApplicationConfiguration.Initialize();
-     
+
         using (var login = new FrmLogin())
         {
             if (login.ShowDialog() == DialogResult.OK)
             {
-                var mainForm = host.Services.GetRequiredService<Forms.MainForm>();
+                var mainForm = host.Services.GetRequiredService<MainForm>();
                 Application.Run(mainForm);
             }
             else

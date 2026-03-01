@@ -1,8 +1,10 @@
-﻿using Hotel.Data;
-using Hotel.Models;
-using System.Data;
-using AForge.Video;
+﻿using AForge.Video;
 using AForge.Video.DirectShow;
+using Hotel.Common;
+using Hotel.Data;
+using Hotel.Models;
+using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace Hotel.Forms
 {
@@ -17,7 +19,6 @@ namespace Hotel.Forms
         private string uploadsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "GuestDocs");
         private FilterInfoCollection? videoDevices;
         private VideoCaptureDevice? videoSource;
-
         public frmGuest(IRepository<TblGuest> guestRepository, IRepository<TblAddress> addressRepository, IRepository<TblCity> cityRepository)
         {
             InitializeComponent();
@@ -26,7 +27,6 @@ namespace Hotel.Forms
             this.addressRepository = addressRepository;
             this.cityRepository = cityRepository;
         }
-
         private void fillGuestGrid()
         {
             guestList = guestRepository
@@ -37,7 +37,6 @@ namespace Hotel.Forms
             dgvBooking.DataSource = null;
             dgvBooking.DataSource = guestList;
         }
-
         private void frmGuest_Load(object sender, EventArgs e)
         {
             SetupGuestGrid();
@@ -74,7 +73,6 @@ namespace Hotel.Forms
             }
             if (cmbCameras.Items.Count > 0) cmbCameras.SelectedIndex = 0;
         }
-
         private void BindStates()
         {
             var statesList = new List<string> {
@@ -133,7 +131,71 @@ namespace Hotel.Forms
                 Width = 150
             });
 
+            // Add Delete Button Column
+            DataGridViewButtonColumn deleteButton = new DataGridViewButtonColumn();
+            deleteButton.Name = "DeleteColumn";
+            deleteButton.HeaderText = "Action";
+            deleteButton.Text = "Delete";
+            deleteButton.UseColumnTextForButtonValue = true;
+            deleteButton.Width = 80;
+            dgvBooking.Columns.Add(deleteButton);
+
+            deleteButton.Visible = AppSession.IsInRole("Admin") || AppSession.IsInRole("Manager");
+
             dgvBooking.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+
+            dgvBooking.CellContentClick += dgvBooking_CellContentClick!;
+        }
+        private void dgvBooking_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0 && dgvBooking.Columns[e.ColumnIndex].Name == "DeleteColumn")
+            {
+                var guest = dgvBooking.Rows[e.RowIndex].DataBoundItem as TblGuest;
+
+                if (guest != null)
+                {
+                    ExecuteDelete(guest.ID);
+                }
+            }
+        }
+        private void ExecuteDelete(int id)
+        {
+            var confirm = MessageBox.Show(
+                $"Are you sure you want to delete?\nThis will also delete their address records.",
+                "Confirm Delete",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning);
+
+            if (confirm == DialogResult.Yes)
+            {
+                try
+                {
+                    using (var db = new AppDbContext())
+                    {
+                        var addresses = db.Addresses
+                                        .Where(a => a.GuestID == id).ToList();
+
+                        if (addresses.Any())
+                        {
+                            db.Addresses.RemoveRange(addresses);
+                        }
+
+                        var guest = db.Guests.FirstOrDefault(x => x.ID == id);
+                        if (guest != null)
+                        {
+                            db.Guests.Remove(guest);
+                            db.SaveChanges();
+                        }
+                    }
+
+                    fillGuestGrid();
+                    MessageBox.Show("Deleted successfully.");
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"There is an invoce created for this guet.\nFirst delete the invoice\nThen try again");
+                }
+            }
         }
         private void btnGuestSave_Click(object sender, EventArgs e)
         {
@@ -176,7 +238,6 @@ namespace Hotel.Forms
                 MessageBox.Show("Error while save Guest", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
         private bool ValidateSaveAction()
         {
             if (string.IsNullOrEmpty(txtGuestName.Text) || string.IsNullOrEmpty(txtMobileNumber.Text))
@@ -213,7 +274,6 @@ namespace Hotel.Forms
             txtPhone2.Text = string.Empty;
             txtMobileNumber.Focus();
         }
-
         private void btnUploadID_Click(object sender, EventArgs e)
         {
             using (OpenFileDialog ofd = new OpenFileDialog())
@@ -283,54 +343,6 @@ namespace Hotel.Forms
             catch (Exception ex)
             {
                 MessageBox.Show($"Error: {ex.Message}");
-            }
-        }
-        private void LoadGuestID(string path)
-        {
-            if (File.Exists(path))
-            {
-                byte[] bytes = File.ReadAllBytes(path);
-                using (MemoryStream ms = new MemoryStream(bytes))
-                {
-                    picIDBox.Image = Image.FromStream(ms);
-                }
-            }
-        }
-
-        private void btnStartCam_Click(object sender, EventArgs e)
-        {
-            if (cmbCameras.SelectedIndex < 0) return;
-
-            videoSource = new VideoCaptureDevice(videoDevices?[cmbCameras.SelectedIndex].MonikerString);
-            if (videoSource == null) return;
-            videoSource.NewFrame += (s, eventArgs) =>
-            {
-                // Get the live frame
-                Bitmap video = (Bitmap)eventArgs.Frame.Clone();
-                // Display it in the picture box
-                picIDBox.Image = video;
-            };
-            videoSource.Start();
-        }
-        private void btnCapture_Click(object sender, EventArgs e)
-        {
-            if (videoSource != null && videoSource.IsRunning)
-            {
-                videoSource.SignalToStop(); // Freeze the frame
-                string tempPath = Path.Combine(Path.GetTempPath(), "captured_id.jpg");
-
-                if (picIDBox.Image != null)
-                    picIDBox.Image.Save(tempPath, System.Drawing.Imaging.ImageFormat.Jpeg);
-
-                selectedFilePath = tempPath; // Set this for your existing Save logic
-                MessageBox.Show("Photo Captured!");
-            }
-        }
-        private void frmGuest_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            if (videoSource != null && videoSource.IsRunning)
-            {
-                videoSource.Stop();
             }
         }
     }

@@ -304,6 +304,7 @@
             txtAmount.Name = "txtAmount";
             txtAmount.Size = new Size(225, 23);
             txtAmount.TabIndex = 0;
+            txtAmount.KeyPress += txtAmount_KeyPress;
             // 
             // lblInvoiceNumber
             // 

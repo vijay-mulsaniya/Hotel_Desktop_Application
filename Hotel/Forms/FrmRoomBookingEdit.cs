@@ -222,30 +222,26 @@ namespace Hotel.Forms
         {
             try
             {
-                string query = @"
-                UPDATE RoomBookings SET 
-                    RoomID = @RoomID,
-                    GuestId = @GuestID,
-                    Status = @Status,
-                    Date = @Date,
-                    NightStay = @NightStay,
-                    AdultCount = @AdultCount,
-                    ChildCount = @ChildCount,
-                    Amount = @Amount
-                WHERE ID = @ID";
-
                 using (SqlConnection con = new SqlConnection(_connectionString))
-                using (SqlCommand cmd = new SqlCommand(query, con))
+                using (SqlCommand cmd = new SqlCommand("dbo.UpdateRoomBooking", con))
                 {
-                    cmd.Parameters.AddWithValue("@RoomID", cmbRoomNumbers.SelectedValue);
-                    cmd.Parameters.AddWithValue("@GuestID", _booking.GuestID);
-                    cmd.Parameters.AddWithValue("@Status", 1);
-                    cmd.Parameters.AddWithValue("@Date", dtpDate.Value);
-                    cmd.Parameters.AddWithValue("@NightStay", chkNightStay.Checked);
-                    cmd.Parameters.AddWithValue("@AdultCount", txtAdultCount.Text);
-                    cmd.Parameters.AddWithValue("@ChildCount", txtChildCount.Text);
-                    cmd.Parameters.AddWithValue("@Amount", txtAmount.Text);
-                    cmd.Parameters.AddWithValue("@ID", _booking.ID);
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.Add("@ID", SqlDbType.Int).Value = _booking.ID;
+                    cmd.Parameters.Add("@RoomID", SqlDbType.Int).Value = cmbRoomNumbers.SelectedValue;
+                    cmd.Parameters.Add("@GuestID", SqlDbType.Int).Value = _booking.GuestID;
+                    cmd.Parameters.Add("@Status", SqlDbType.Int).Value = 1;
+                    cmd.Parameters.Add("@Date", SqlDbType.Date).Value = dtpDate.Value.Date;
+                    cmd.Parameters.Add("@NightStay", SqlDbType.Bit).Value = chkNightStay.Checked;
+
+                    cmd.Parameters.Add("@AdultCount", SqlDbType.Int).Value =
+                        string.IsNullOrWhiteSpace(txtAdultCount.Text) ? (object)DBNull.Value : Convert.ToInt32(txtAdultCount.Text);
+
+                    cmd.Parameters.Add("@ChildCount", SqlDbType.Int).Value =
+                        string.IsNullOrWhiteSpace(txtChildCount.Text) ? (object)DBNull.Value : Convert.ToInt32(txtChildCount.Text);
+
+                    cmd.Parameters.Add("@Amount", SqlDbType.Decimal).Value =
+                        Convert.ToDecimal(txtAmount.Text);
 
                     con.Open();
                     cmd.ExecuteNonQuery();
@@ -254,16 +250,71 @@ namespace Hotel.Forms
                 MessageBox.Show("Save Successfully", "Success",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             }
+            catch (SqlException ex)
+            {
+                MessageBox.Show(ex.Message,
+                    "Validation Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+            }
             catch (Exception)
             {
-                MessageBox.Show("Error while save room booking", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Error while save room booking",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
-
         }
+
+        //private void btnSave_Click(object sender, EventArgs e)
+        //{
+        //    try
+        //    {
+        //        string query = @"
+        //        UPDATE RoomBookings SET 
+        //            RoomID = @RoomID,
+        //            GuestId = @GuestID,
+        //            Status = @Status,
+        //            Date = @Date,
+        //            NightStay = @NightStay,
+        //            AdultCount = @AdultCount,
+        //            ChildCount = @ChildCount,
+        //            Amount = @Amount
+        //        WHERE ID = @ID";
+
+        //        using (SqlConnection con = new SqlConnection(_connectionString))
+        //        using (SqlCommand cmd = new SqlCommand(query, con))
+        //        {
+        //            cmd.Parameters.AddWithValue("@RoomID", cmbRoomNumbers.SelectedValue);
+        //            cmd.Parameters.AddWithValue("@GuestID", _booking.GuestID);
+        //            cmd.Parameters.AddWithValue("@Status", 1);
+        //            cmd.Parameters.AddWithValue("@Date", dtpDate.Value);
+        //            cmd.Parameters.AddWithValue("@NightStay", chkNightStay.Checked);
+        //            cmd.Parameters.AddWithValue("@AdultCount", txtAdultCount.Text);
+        //            cmd.Parameters.AddWithValue("@ChildCount", txtChildCount.Text);
+        //            cmd.Parameters.AddWithValue("@Amount", txtAmount.Text);
+        //            cmd.Parameters.AddWithValue("@ID", _booking.ID);
+
+        //            con.Open();
+        //            cmd.ExecuteNonQuery();
+        //        }
+
+        //        MessageBox.Show("Save Successfully", "Success",
+        //            MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+
+        //        this.DialogResult = DialogResult.OK;
+        //        this.Close();
+        //    }
+        //    catch (Exception)
+        //    {
+        //        MessageBox.Show("Error while save room booking", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        //    }
+
+        //}
 
         private void chkNightStay_CheckedChanged(object sender, EventArgs e)
         {
@@ -285,80 +336,128 @@ namespace Hotel.Forms
         {
             try
             {
-                var fromDate = dtpFromDate.Value;
-                var toDate = dtpToDate.Value;
+                var fromDate = dtpFromDate.Value.Date;
+                var toDate = dtpToDate.Value.Date;
 
                 var isValid = validaeBulkBookingSave();
 
                 if (!isValid)
                 {
-                    MessageBox.Show("Please select all required fields", "All fields not selected", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Please select all required fields",
+                        "All fields not selected",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
                     return;
                 }
 
-
-                for (DateTime date = fromDate; date.Date < toDate.Date; date = date.AddDays(1))
+                using (SqlConnection con = new SqlConnection(_connectionString))
                 {
-                    string query = @"Insert into RoomBookings(HotelID, BookingMasterID, RoomID, GuestID, Date, NightStay, AdultCount, ChildCount, Amount, Status, IsActive, IsDeleted, CreatedOn)
-                               values (@HotelID, @BookingMasterID, @RoomID, @GuestID, @Date, @NightStay, @AdultCount, @ChildCount, @Amount, @Status, @IsActive, @IsDeleted, @CreatedOn);";
+                    con.Open();
 
-                    using (SqlConnection con = new SqlConnection(_connectionString))
-                    using (SqlCommand cmd = new SqlCommand(query, con))
+                    for (DateTime date = fromDate; date < toDate; date = date.AddDays(1))
                     {
-                        cmd.Parameters.AddWithValue("@HotelID", 1);
-                        cmd.Parameters.AddWithValue("@BookingMasterID", _booking.BookingMasterID);
-                        cmd.Parameters.AddWithValue("@RoomID", cmbRoomNumbersExtend.SelectedValue);
-                        cmd.Parameters.AddWithValue("@GuestID", _booking.GuestID);
-                        cmd.Parameters.AddWithValue("@Date", date);
-                        cmd.Parameters.AddWithValue("@NightStay", true);
-                        cmd.Parameters.AddWithValue("@Status", 1);
-                        cmd.Parameters.AddWithValue("@AdultCount", txtAdultsExtend.Text);
-                        cmd.Parameters.AddWithValue("@ChildCount", txtChildExtend.Text);
-                        cmd.Parameters.AddWithValue("@Amount", txtPerNightCharge.Text);
-                        cmd.Parameters.AddWithValue("@IsActive", true);
-                        cmd.Parameters.AddWithValue("@IsDeleted", false);
-                        cmd.Parameters.AddWithValue("@CreatedOn", DateTime.UtcNow.GetIndianTime());
+                        using (SqlCommand cmd = new SqlCommand("dbo.InsertRoomBooking", con))
+                        {
+                            cmd.CommandType = CommandType.StoredProcedure;
 
-                        con.Open();
-                        cmd.ExecuteNonQuery();
+                            cmd.Parameters.Add("@HotelID", SqlDbType.Int).Value = 1;
+                            cmd.Parameters.Add("@BookingMasterID", SqlDbType.Int).Value = _booking.BookingMasterID;
+                            cmd.Parameters.Add("@RoomID", SqlDbType.Int).Value = cmbRoomNumbersExtend.SelectedValue;
+                            cmd.Parameters.Add("@GuestID", SqlDbType.Int).Value = _booking.GuestID;
+                            cmd.Parameters.Add("@Date", SqlDbType.Date).Value = date;
+                            cmd.Parameters.Add("@NightStay", SqlDbType.Bit).Value = true;
+                            cmd.Parameters.Add("@AdultCount", SqlDbType.Int).Value = Convert.ToInt32(txtAdultsExtend.Text);
+                            cmd.Parameters.Add("@ChildCount", SqlDbType.Int).Value = Convert.ToInt32(txtChildExtend.Text);
+                            cmd.Parameters.Add("@Amount", SqlDbType.Decimal).Value = Convert.ToDecimal(txtPerNightCharge.Text);
+                            cmd.Parameters.Add("@Status", SqlDbType.Int).Value = 1;
+                            cmd.Parameters.Add("@IsActive", SqlDbType.Bit).Value = true;
+                            cmd.Parameters.Add("@IsDeleted", SqlDbType.Bit).Value = false;
+                            cmd.Parameters.Add("@CreatedOn", SqlDbType.DateTime).Value = DateTime.UtcNow.GetIndianTime();
+
+                            cmd.ExecuteNonQuery();
+                        }
                     }
                 }
 
-                //string query2 = @"Insert into RoomBookings(HotelID, BookingMasterID, RoomID, GuestID, Date, NightStay, AdultCount, ChildCount, Amount, Status, IsActive, IsDeleted, CreatedOn)
-                //                   values (@HotelID, @BookingMasterID, @RoomID, @GuestID, @Date, @NightStay, @AdultCount, @ChildCount, @Amount, @Status, @IsActive, @IsDeleted, @CreatedOn);";
-
-                //using (SqlConnection con = new SqlConnection(_connectionString))
-                //using (SqlCommand cmd = new SqlCommand(query2, con))
-                //{
-                //    cmd.Parameters.AddWithValue("@HotelID", 1);
-                //    cmd.Parameters.AddWithValue("@BookingMasterID", _booking.BookingMasterID);
-                //    cmd.Parameters.AddWithValue("@RoomID", cmbRoomNumbersExtend.SelectedValue);
-                //    cmd.Parameters.AddWithValue("@GuestID", _booking.GuestID);
-                //    cmd.Parameters.AddWithValue("@Date", dtpToDate.Value);
-                //    cmd.Parameters.AddWithValue("@NightStay", false);
-                //    cmd.Parameters.AddWithValue("@Status", 1);
-                //    cmd.Parameters.AddWithValue("@AdultCount", txtAdultsExtend.Text);
-                //    cmd.Parameters.AddWithValue("@ChildCount", txtChildExtend.Text);
-                //    cmd.Parameters.AddWithValue("@Amount", 0);
-                //    cmd.Parameters.AddWithValue("@IsActive", true);
-                //    cmd.Parameters.AddWithValue("@IsDeleted", false);
-                //    cmd.Parameters.AddWithValue("@CreatedOn", DateTime.UtcNow.GetIndianTime());
-
-                //    con.Open();
-                //    cmd.ExecuteNonQuery();
-                //}
-
-                MessageBox.Show("Save Successfully", "Success",
-                   MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Save Successfully",
+                    "Success",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
 
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             }
+            catch (SqlException ex)
+            {
+                // Show SQL validation error
+                MessageBox.Show(ex.Message,
+                    "Booking Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+            }
             catch (Exception)
             {
-                MessageBox.Show("Error while add new dates (frmRoomBooking)", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Unexpected error while adding new dates",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
+
+        //private void btnAddNewDates_Click(object sender, EventArgs e)
+        //{
+        //    try
+        //    {
+        //        var fromDate = dtpFromDate.Value;
+        //        var toDate = dtpToDate.Value;
+
+        //        var isValid = validaeBulkBookingSave();
+
+        //        if (!isValid)
+        //        {
+        //            MessageBox.Show("Please select all required fields", "All fields not selected", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        //            return;
+        //        }
+
+
+        //        for (DateTime date = fromDate; date.Date < toDate.Date; date = date.AddDays(1))
+        //        {
+        //            string query = @"Insert into RoomBookings(HotelID, BookingMasterID, RoomID, GuestID, Date, NightStay, AdultCount, ChildCount, Amount, Status, IsActive, IsDeleted, CreatedOn)
+        //                       values (@HotelID, @BookingMasterID, @RoomID, @GuestID, @Date, @NightStay, @AdultCount, @ChildCount, @Amount, @Status, @IsActive, @IsDeleted, @CreatedOn);";
+
+        //            using (SqlConnection con = new SqlConnection(_connectionString))
+        //            using (SqlCommand cmd = new SqlCommand(query, con))
+        //            {
+        //                cmd.Parameters.AddWithValue("@HotelID", 1);
+        //                cmd.Parameters.AddWithValue("@BookingMasterID", _booking.BookingMasterID);
+        //                cmd.Parameters.AddWithValue("@RoomID", cmbRoomNumbersExtend.SelectedValue);
+        //                cmd.Parameters.AddWithValue("@GuestID", _booking.GuestID);
+        //                cmd.Parameters.AddWithValue("@Date", date);
+        //                cmd.Parameters.AddWithValue("@NightStay", true);
+        //                cmd.Parameters.AddWithValue("@Status", 1);
+        //                cmd.Parameters.AddWithValue("@AdultCount", txtAdultsExtend.Text);
+        //                cmd.Parameters.AddWithValue("@ChildCount", txtChildExtend.Text);
+        //                cmd.Parameters.AddWithValue("@Amount", txtPerNightCharge.Text);
+        //                cmd.Parameters.AddWithValue("@IsActive", true);
+        //                cmd.Parameters.AddWithValue("@IsDeleted", false);
+        //                cmd.Parameters.AddWithValue("@CreatedOn", DateTime.UtcNow.GetIndianTime());
+
+        //                con.Open();
+        //                cmd.ExecuteNonQuery();
+        //            }
+        //        }
+
+        //        MessageBox.Show("Save Successfully", "Success",
+        //           MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+        //        this.DialogResult = DialogResult.OK;
+        //        this.Close();
+        //    }
+        //    catch (Exception)
+        //    {
+        //        MessageBox.Show("Error while add new dates (frmRoomBooking)", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        //    }
+        //}
 
         private void dtpFromDate_Leave(object sender, EventArgs e)
         {

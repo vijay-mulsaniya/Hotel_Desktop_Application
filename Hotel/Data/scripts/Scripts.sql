@@ -291,3 +291,168 @@ BEGIN
 
 END
 GO
+
+CREATE OR ALTER PROCEDURE dbo.InsertRoomBooking
+(
+    @HotelID INT,
+    @BookingMasterID INT,
+    @RoomID INT,
+    @GuestID INT,
+    @Date DATE,
+    @NightStay BIT,
+    @AdultCount INT,
+    @ChildCount INT,
+    @Amount DECIMAL(18,2),
+    @Status INT,
+    @IsActive BIT,
+    @IsDeleted BIT,
+    @CreatedOn DATETIME
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+	set @AdultCount = ISNULL(@AdultCount, 0);
+	set @ChildCount = ISNULL(@ChildCount, 0);
+
+	IF (@AdultCount = 0 AND @ChildCount = 0)
+	Begin
+		 ;THROW 50002, 'Invalid Adultcount and child count', 1;
+	End
+
+	If (ISNULL(@RoomID, 0) = 0)
+	Begin
+		 ;THROW 50003, 'Please select room number', 1;
+	End
+
+	If (ISNULL(@GuestID, 0) = 0)
+	Begin
+		 ;THROW 50003, 'Guest id not provided', 1;
+	End
+	
+	If (ISNULL(@Amount, 0) <= 0)
+	Begin
+		 ;THROW 50003, 'Invalid amount provided', 1;
+	End
+	
+    IF EXISTS (
+        SELECT 1
+        FROM RoomBookings
+        WHERE RoomID = @RoomID
+          AND [Date] >= @Date
+          AND [Date] < DATEADD(DAY, 1, @Date)
+          AND IsDeleted = 0
+    )
+    BEGIN
+        DECLARE @guestName NVARCHAR(255);
+        DECLARE @errorMessage NVARCHAR(500);
+
+        SELECT TOP 1
+            @guestName = g.FirstName
+        FROM RoomBookings rb
+        INNER JOIN Guests g ON rb.GuestID = g.ID
+        WHERE rb.RoomID = @RoomID
+          AND rb.[Date] >= @Date
+          AND rb.[Date] < DATEADD(DAY, 1, @Date)
+          AND rb.IsDeleted = 0;
+
+        SET @errorMessage =
+            CONVERT(VARCHAR(10), @Date, 105) +
+            ' is already booked by ' +
+            ISNULL(@guestName, 'another guest');
+
+        THROW 50001, @errorMessage, 1;
+    END
+
+    INSERT INTO RoomBookings
+    (
+        HotelID, BookingMasterID, RoomID, GuestID,
+        [Date], NightStay, AdultCount, ChildCount,
+        Amount, Status, IsActive, IsDeleted, CreatedOn
+    )
+    VALUES
+    (
+        @HotelID, @BookingMasterID, @RoomID, @GuestID,
+        @Date, @NightStay, @AdultCount, @ChildCount,
+        @Amount, @Status, @IsActive, @IsDeleted, @CreatedOn
+    );
+END
+GO
+CREATE OR ALTER PROCEDURE dbo.UpdateRoomBooking
+(
+    @ID INT,
+    @RoomID INT,
+    @GuestID INT,
+    @Status INT,
+    @Date DATE,
+    @NightStay BIT,
+    @AdultCount INT = NULL,
+    @ChildCount INT = NULL,
+    @Amount DECIMAL(18,2)
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    ------------------------------------------------
+    -- Normalize NULL counts to 0
+    ------------------------------------------------
+    SET @AdultCount = ISNULL(@AdultCount, 0);
+    SET @ChildCount = ISNULL(@ChildCount, 0);
+
+    ------------------------------------------------
+    -- Validation 1: Adult & Child both cannot be 0
+    ------------------------------------------------
+    IF (@AdultCount = 0 AND @ChildCount = 0)
+    BEGIN
+        ;THROW 50002, 'Adult and Child count cannot both be 0.', 1;
+    END
+
+    ------------------------------------------------
+    -- Validation 2: Amount must be > 0
+    ------------------------------------------------
+    IF (@Amount <= 0)
+    BEGIN
+        ;THROW 50003, 'Amount must be greater than 0.', 1;
+    END
+
+    ------------------------------------------------
+    -- Validation 3: Prevent duplicate Room + Date
+    ------------------------------------------------
+    IF EXISTS (
+        SELECT 1
+        FROM RoomBookings
+        WHERE RoomID = @RoomID
+          AND [Date] = @Date
+          AND ID <> @ID
+          AND IsDeleted = 0
+    )
+    BEGIN
+		declare @bookedGuestName nvarchar(50);
+		SELECT @bookedGuestName = (select FirstName from Guests Where Id = (select GuestID from BookingMasters where Id = RoomBookings.BookingMasterID))
+        FROM RoomBookings
+        WHERE RoomID = @RoomID
+          AND [Date] = @Date
+          AND ID <> @ID
+          AND IsDeleted = 0
+
+		declare @formatedDate varchar(100) = 'Selected room is already booked for ' + @bookedGuestName + 'on ' +  CONVERT(VARCHAR(10), @Date, 105);
+        THROW 50004, @formatedDate, 1;
+    END
+
+    ------------------------------------------------
+    -- Update
+    ------------------------------------------------
+    UPDATE RoomBookings
+    SET 
+        RoomID = @RoomID,
+        GuestID = @GuestID,
+        Status = @Status,
+        [Date] = @Date,
+        NightStay = @NightStay,
+        AdultCount = @AdultCount,
+        ChildCount = @ChildCount,
+        Amount = @Amount
+    WHERE ID = @ID;
+END
+GO

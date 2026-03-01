@@ -121,6 +121,7 @@
             txtAmountPaid.Name = "txtAmountPaid";
             txtAmountPaid.Size = new Size(200, 23);
             txtAmountPaid.TabIndex = 4;
+            txtAmountPaid.KeyPress += txtAmountPaid_KeyPress;
             // 
             // btnSave
             // 

@@ -249,30 +249,57 @@ namespace Hotel.Services
         public async Task<bool> EditInvoiceMaster(BillingDto data)
         {
             using var context = await factory.CreateDbContextAsync();
-            var invoice = context.BookingMasters.FirstOrDefault(x => x.ID == data.ID);
-            if (invoice == null) throw new Exception("invoice not found or deleted");
 
-            if (invoice.InvoiceNumber != data.InvoiceNumber)
+            var invoice = await context.BookingMasters
+                .Include(x => x.RoomBookings)
+                .FirstOrDefaultAsync(x => x.ID == data.ID);
+
+            if (invoice == null)
+                throw new Exception("Invoice not found or deleted");
+
+            var oldGuestId = invoice.GuestID;
+            var newGuestId = data.GuestID;
+
+            // Prevent duplicate invoice number
+            if (!string.Equals(invoice.InvoiceNumber?.Trim(),
+                               data.InvoiceNumber?.Trim(),
+                               StringComparison.OrdinalIgnoreCase))
             {
-                bool otherInvoicewithSameNumber = context.BookingMasters
-                    .Any(x => x.InvoiceNumber!.ToLower().Trim() == data.InvoiceNumber!.ToLower().Trim() && x.ID != invoice.ID);
+                bool exists = await context.BookingMasters
+                    .AnyAsync(x =>
+                        x.InvoiceNumber!.ToLower().Trim() == data.InvoiceNumber!.ToLower().Trim()
+                        && x.ID != invoice.ID);
 
-                if (otherInvoicewithSameNumber)
-                    throw new Exception("Duplicate invoice number not allow");
+                if (exists)
+                    throw new Exception("Duplicate invoice number not allowed");
             }
 
+            //--------------------------------------------------
+            // Update Master
+            //--------------------------------------------------
             invoice.InvoiceNumber = data.InvoiceNumber;
             invoice.InvoiceDate = data.BillDate;
             invoice.Discount = data.Discount;
-            invoice.GuestID = data.GuestID;
+            invoice.GuestID = newGuestId;
             invoice.GuestStateCode = data.GuestStateCode;
             invoice.InputTaxCredit = data.InputTaxCredit;
             invoice.IsGSTApplicable = data.IsGSTApplicable;
             invoice.IsTaxInclusive = data.IsTaxInclusive;
             invoice.UpdatedOn = DateTime.UtcNow.GetIndianTime();
 
-            context.Update(invoice);
+            //--------------------------------------------------
+            // If Guest Changed → Update All RoomBookings
+            //--------------------------------------------------
+            if (oldGuestId != newGuestId)
+            {
+                foreach (var booking in invoice.RoomBookings)
+                {
+                    booking.GuestID = newGuestId;
+                }
+            }
+
             await context.SaveChangesAsync();
+
             return true;
         }
         public async Task<bool> EditPayments(PaymentDetailsDto data)
@@ -307,7 +334,6 @@ namespace Hotel.Services
                                  .ToList();
             return distinctRooms;
         }
-       
         public async Task<bool> DeleteRoomBookingAsync(int id)
         {
             using var context = await factory.CreateDbContextAsync();

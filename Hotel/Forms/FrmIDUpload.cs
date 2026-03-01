@@ -238,19 +238,26 @@ namespace Hotel.Forms
         }
         private void btnCapture_Click(object sender, EventArgs e)
         {
+            if (videoSource == null || !videoSource.IsRunning) return;
+            if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+
+            string fileName = $"Capture_{DateTime.Now:yyyyMMdd_HHmmss}.jpg";
+            string fullPath = Path.Combine(uploadsFolder, fileName);
+
             try
             {
-                if (videoSource != null && videoSource.IsRunning)
+                if (picIDBox.Image != null)
                 {
-                    videoSource.SignalToStop(); // Freeze the frame
+                    // We clone to avoid "File in use" errors while the camera is running
+                    using (Bitmap bmp = new Bitmap(picIDBox.Image))
+                    {
+                        bmp.Save(fullPath, System.Drawing.Imaging.ImageFormat.Jpeg);
+                    }
 
-                    // Save the current image to a temporary path so btnIDSave can use it
-                    string tempPath = Path.Combine(Path.GetTempPath(), "captured_id.jpg");
-                    if (picIDBox.Image == null) return;
-                    picIDBox.Image.Save(tempPath, System.Drawing.Imaging.ImageFormat.Jpeg);
+                    selectedFilePath = fullPath; // Store this for the DB save button
+                    videoSource.SignalToStop(); // Optional: freeze the camera
 
-                    selectedFilePath = tempPath; // Set this for your existing Save logic
-                    MessageBox.Show("Photo Captured!");
+                    MessageBox.Show("Image Captured!.");
                 }
             }
             catch (Exception)
