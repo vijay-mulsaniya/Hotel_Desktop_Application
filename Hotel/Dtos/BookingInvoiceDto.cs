@@ -75,6 +75,7 @@ namespace Hotel.Dtos
         public int ID { get; set; }
         public int HotelID { get; set; }
         public int BookingMasterID { get; set; }
+        public string? InvoiceNumber { get; set; } 
         public int RoomID { get; set; }
         public string RoomNumber { get; set; } = null!;
         public string RoomTitle { get; set; } = null!;

@@ -51,6 +51,7 @@ namespace Hotel.Models
         public int Charges { get; set; }
         public bool IsClean { get; set; }
         public bool IsAvailable { get; set; }
+        public string? Notes { get; set; }
         public TblHotel? Hotel { get; set; }
         public ICollection<TblAminities> Aminities { get; set; } = new HashSet<TblAminities>();
         public ICollection<TblRoomBooking> RoomBookings { get; set; } = new HashSet<TblRoomBooking>();
@@ -67,6 +68,7 @@ namespace Hotel.Models
         public string? PhoneNumber2 { get; set; }
         public string? Email { get; set; }
         public Gender? Gender { get; set; } = null;
+        public string? Notes { get; set; }
         public TblHotel? Hotel { get; set; }
 
         public ICollection<TblIdentityProof> IdentityProof { get; set; } = new HashSet<TblIdentityProof>();
@@ -101,6 +103,7 @@ namespace Hotel.Models
         public int? UpdatedbyId { get; set; }
         public bool? IsActive { get; set; } = true;
         public bool? IsDeleted { get; set; } = false;
+        public string? Notes { get; set; }
         public ICollection<TblUserRole> UserRoles { get; set; } = new HashSet<TblUserRole>();
         public TblHotel? Hotel { get; set; }
     }
@@ -170,7 +173,7 @@ namespace Hotel.Models
 
         public bool IsGSTApplicable { get; set; } = false;
         public bool IsTaxInclusive { get; set; } = false;
-
+        public string? Notes { get; set; }
         public TblHotel? Hotel { get; set; }
         public TblGuest? Guest { get; set; }
 
@@ -193,7 +196,8 @@ namespace Hotel.Models
         public decimal TaxPercentage { get; set; } = 0M;
         public bool IsCheckedOut { get; set; } = false;
         public DateTime? ActualCheckOutTime { get; set; }
-        public bool IsCleaned { get; set; } = true; 
+        public bool IsCleaned { get; set; } = true;
+        public string? Notes { get; set; }
         public TblHotel? Hotel { get; set; }
         public TblRoom? Room { get; set; }
         public TblGuest? Guest { get; set; }
@@ -208,7 +212,8 @@ namespace Hotel.Models
         public decimal AmountPaid { get; set; } = 0M;
         public DateTime PaymentDate { get; set; }
         public PaymentMethod? Method { get; set; }
-        public string? OnlineTransacionRefNumber { get; set; }  
+        public string? OnlineTransacionRefNumber { get; set; }
+        public string? Notes { get; set; }
         public TblHotel? Hotel { get; set; }
         public TblBookingMaster? BookingMaster { get; set; }
         public TblRoom? Room { get; set; }
@@ -255,6 +260,7 @@ namespace Hotel.Models
         public int HotelID { get; set; }
         public int TransactionTypeId { get; set; }
         public int LastNumber { get; set; }
+        public string? Notes { get; set; }
     }
     public class TblState
     {
@@ -271,5 +277,18 @@ namespace Hotel.Models
         public string CityName { get; set; } = null!;
 
         public TblState? State { get; set; }
+    }
+    public class TblActivity
+    {
+        public int ID { get; set; }
+        public string ActivityName { get; set; } = null!; // e.g., "Room Booking", "Payment", "Cleaning"
+        public string ActivityDescription { get; set; } = null!; // e.g., "Booked Room 101 for Guest John Doe"
+        public string Operation { get; set; } = null!; // e.g., "Create", "Update", "Delete"
+        public int? LoginUserID { get; set; } // ID of the user who performed the activity
+        public string? LoginUserName { get; set; } // ID of the user who performed the activity
+        public DateTime ActivityTime { get; set; } = DateTime.UtcNow.GetIndianTime(); // Timestamp of when the activity was performed
+        public string? TableName { get; set; }
+        public int? TableId { get; set; }
+        public string? Notes { get; set; }
     }
 }

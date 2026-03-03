@@ -5,6 +5,8 @@ using Hotel.Dtos.PaymentDtos;
 using Hotel.Forms;
 using Hotel.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic.ApplicationServices;
+using System.Diagnostics.Metrics;
 using System.Windows.Documents;
 
 namespace Hotel.Services
@@ -123,7 +125,7 @@ namespace Hotel.Services
         {
             using var context = await factory.CreateDbContextAsync();
             var roomBookings = await context.RoomBookings
-                           .AsNoTracking()
+                           .AsNoTracking().Include(x => x.BookingMaster)
                            .Where(rb => rb.BookingMasterID == bookingMasterID)
                            .Select(rb => new
                                 {
@@ -137,6 +139,7 @@ namespace Hotel.Services
                             ID = x.Booking.ID,
                             HotelID = x.Booking.HotelID,
                             BookingMasterID = x.Booking.BookingMasterID,
+                            InvoiceNumber = x.Booking.BookingMaster!.InvoiceNumber,
                             RoomID = x.Booking.RoomID,
                             GuestID = x.Booking.GuestID,
                             Status = x.Booking.Status,
@@ -192,6 +195,28 @@ namespace Hotel.Services
             };
             context.Payments.Add(payment);
             await context.SaveChangesAsync();
+
+            var invoice = await context.BookingMasters.AsNoTracking()
+                        .Include(x => x.Payments)
+                        .Include(x => x.RoomBookings).ThenInclude(x => x.Room).
+                         FirstOrDefaultAsync(x => x.ID == form.BookingMasterID);
+            var roomNumber = invoice?.RoomBookings.FirstOrDefault(rb => rb.RoomID == form.RoomID)?.Room?.RoomNumber ?? "Unknown";
+
+            context.Activities.Add(new TblActivity
+            {
+                ActivityName = "Payment Received",
+                ActivityDescription = $"Invoice No: {invoice?.InvoiceNumber}, Room No: {roomNumber}, Payment: {payment.AmountPaid}, Received by {AppSession.CurrentUser?.UserName}",
+                Operation = "Create",
+
+                LoginUserID = AppSession.CurrentUser?.ID,
+                LoginUserName = AppSession.CurrentUser?.UserName,
+                ActivityTime = DateTime.UtcNow.GetIndianTime(),
+
+                TableName = "TblPayment",
+                TableId = payment.ID
+            });
+            await context.SaveChangesAsync();
+
             return new PaymentDetailsDto
             {
                 ID = payment.ID,
@@ -244,6 +269,23 @@ namespace Hotel.Services
                 ReportTotal = data.Select(x => x.AmountPaid).Sum(),
                 paymentCollectionReportDetails = paymentDetail
             };
+
+            context.Activities.Add(new TblActivity
+            {
+                ActivityName = "Monthly Payment Collection Report",
+                ActivityDescription = $"Payment Opened by {AppSession.CurrentUser?.UserName}",
+                Operation = "View",
+
+                LoginUserID = AppSession.CurrentUser?.ID,
+                LoginUserName = AppSession.CurrentUser?.UserName,
+                ActivityTime = DateTime.UtcNow.GetIndianTime(),
+
+                TableName = "TblPayment",
+                TableId = null
+            });
+
+            await context.SaveChangesAsync();
+
             return result;
         }
         public async Task<bool> EditInvoiceMaster(BillingDto data)
@@ -300,6 +342,21 @@ namespace Hotel.Services
 
             await context.SaveChangesAsync();
 
+            context.Activities.Add(new TblActivity
+            {
+                ActivityName = "Edit Invoice Master",
+                ActivityDescription = $"Invoice Master Edited by {AppSession.CurrentUser?.UserName}",
+                Operation = "Edit",
+
+                LoginUserID = AppSession.CurrentUser?.ID,
+                LoginUserName = AppSession.CurrentUser?.UserName,
+                ActivityTime = DateTime.UtcNow.GetIndianTime(),
+
+                TableName = "TblBookingMaster",
+                TableId = invoice.ID
+            });
+            await context.SaveChangesAsync();
+
             return true;
         }
         public async Task<bool> EditPayments(PaymentDetailsDto data)
@@ -307,6 +364,8 @@ namespace Hotel.Services
             using var context = await factory.CreateDbContextAsync();
             var payment = context.Payments.FirstOrDefault(x => x.ID == data.ID);
             if (payment == null) throw new Exception("Payment not found or deleted");
+
+            var oldAmount = payment.AmountPaid;
 
             payment.AmountPaid = data.Amount;
             payment.PaymentDate = data.PaymentDate;
@@ -316,6 +375,24 @@ namespace Hotel.Services
 
             context.Update(payment);
             await context.SaveChangesAsync();
+
+            var invoice = context.BookingMasters.AsNoTracking().FirstOrDefault(x => x.ID == payment.BookingMasterID);
+
+            context.Activities.Add(new TblActivity
+            {
+                ActivityName = "Payment Edited",
+                ActivityDescription = $"Invoice Number: {invoice?.InvoiceNumber}, Old: {oldAmount}, New {data.Amount}, Payment Edited by {AppSession.CurrentUser?.UserName}.",
+                Operation = "Create",
+
+                LoginUserID = AppSession.CurrentUser?.ID,
+                LoginUserName = AppSession.CurrentUser?.UserName,
+                ActivityTime = DateTime.UtcNow.GetIndianTime(),
+
+                TableName = "TblPayment",
+                TableId = payment.ID
+            });
+            await context.SaveChangesAsync();
+
             return true;
         }
         public async Task<List<ListboxItemAvailableRooms>> RoomsByInvoice(int invoiceID)
@@ -341,29 +418,91 @@ namespace Hotel.Services
             if (booking == null) return false;
 
             context.RoomBookings.Remove(booking);
-            return await context.SaveChangesAsync() > 0;
+            var result = await context.SaveChangesAsync() > 0;
+
+            var rb = context.RoomBookings.AsNoTracking().Include(x => x.Room).FirstOrDefault(x => x.ID == booking.RoomID);
+            var roomNumber = rb?.Room?.RoomNumber ?? "Unknown";
+            var roomTitle = rb?.Room?.RoomTitle ?? "Unknown";
+
+            context.Activities.Add(new TblActivity
+            {
+                ActivityName = "Room Booking Delete",
+                ActivityDescription = $"Room No: {roomNumber} - {roomTitle}, Booking Date: {booking.Date.Value.Date:dd/MM/yyyy}, Booking deleted by {AppSession.CurrentUser?.UserName}",
+                Operation = "Delete",
+
+                LoginUserID = AppSession.CurrentUser?.ID,
+                LoginUserName = AppSession.CurrentUser?.UserName,
+                ActivityTime = DateTime.UtcNow.GetIndianTime(),
+
+                TableName = "TblRoomBooking",
+                TableId = booking.ID
+            });
+            await context.SaveChangesAsync();
+
+            return result;
         }
         public async Task<bool> DeleteInvoiceMasterAsync(int id)
         {
             using var context = await factory.CreateDbContextAsync();
+
             var master = await context.BookingMasters
                 .Include(x => x.RoomBookings)
                 .Include(x => x.Payments)
                 .FirstOrDefaultAsync(x => x.ID == id);
 
-            if (master == null) return false;
+            if (master == null)
+                return false;
 
+            context.Payments.RemoveRange(master.Payments);
+            context.RoomBookings.RemoveRange(master.RoomBookings);
             context.BookingMasters.Remove(master);
-            return await context.SaveChangesAsync() > 0;
+
+            var result = await context.SaveChangesAsync() > 0;
+
+            context.Activities.Add(new TblActivity
+            {
+                ActivityName = "Invoice Delete",
+                ActivityDescription = $"Invoice Number: {master.InvoiceNumber} is deleted by {AppSession.CurrentUser?.UserName}",
+                Operation = "Delete",
+
+                LoginUserID = AppSession.CurrentUser?.ID,
+                LoginUserName = AppSession.CurrentUser?.UserName,
+                ActivityTime = DateTime.UtcNow.GetIndianTime(),
+
+                TableName = "TblBookingMaster",
+                TableId = master.ID
+            });
+            await context.SaveChangesAsync();
+
+            return result;
         }
         public async Task<bool> DeletePaymentsAsync(int id)
         {
             using var context = await factory.CreateDbContextAsync();
-            var booking = await context.Payments.FindAsync(id);
-            if (booking == null) return false;
+            var payment = await context.Payments.FindAsync(id);
+            if (payment == null) return false;
 
-            context.Payments.Remove(booking);
-            return await context.SaveChangesAsync() > 0;
+            context.Payments.Remove(payment);
+            var result = await context.SaveChangesAsync() > 0;
+
+            var invoice = context.BookingMasters.AsNoTracking().FirstOrDefault(x => x.ID == payment.BookingMasterID);
+
+            context.Activities.Add(new TblActivity
+            {
+                ActivityName = "Payment Delete",
+                ActivityDescription = $"Invoice No.: {invoice?.InvoiceNumber}, Payment is deleted by {AppSession.CurrentUser?.UserName}",
+                Operation = "Delete",
+
+                LoginUserID = AppSession.CurrentUser?.ID,
+                LoginUserName = AppSession.CurrentUser?.UserName,
+                ActivityTime = DateTime.UtcNow.GetIndianTime(),
+
+                TableName = "TblPayments",
+                TableId = payment.ID
+            });
+            await context.SaveChangesAsync();
+
+            return result;
         }
     }
     public class GuestStateCode

@@ -33,30 +33,21 @@
             menuFile = new ToolStripMenuItem();
             logoutToolStripMenuItem = new ToolStripMenuItem();
             menuFileExit = new ToolStripMenuItem();
-            menuMasters = new ToolStripMenuItem();
-            menuMasterMembers = new ToolStripMenuItem();
-            menuTransactions = new ToolStripMenuItem();
-            menuTransactionMaintenance = new ToolStripMenuItem();
-            menuTransactionReceipts = new ToolStripMenuItem();
-            incomeExpensesFundTransferToolStripMenuItem = new ToolStripMenuItem();
-            menuReports = new ToolStripMenuItem();
-            menuReportsMemberStatement = new ToolStripMenuItem();
-            menuReportsLedgerStatement = new ToolStripMenuItem();
             menuHelp = new ToolStripMenuItem();
             menuHelpAbout = new ToolStripMenuItem();
-            carCardToolStripMenuItem = new ToolStripMenuItem();
             mainToolStrip = new ToolStrip();
             btnAddGuest = new ToolStripButton();
+            toolStripButton1 = new ToolStripButton();
             btnMembers = new ToolStripButton();
             btnReceipt = new ToolStripButton();
             btnTransactions = new ToolStripButton();
             btnBookNow = new ToolStripButton();
             btnReports = new ToolStripButton();
             btnChangePassword = new ToolStripButton();
-            toolStripButton1 = new ToolStripButton();
             mainStatusStrip = new StatusStrip();
             lblStatus = new ToolStripStatusLabel();
             statusLabelUserName = new ToolStripStatusLabel();
+            btnHistory = new ToolStripButton();
             mainMenu.SuspendLayout();
             mainToolStrip.SuspendLayout();
             mainStatusStrip.SuspendLayout();
@@ -64,7 +55,7 @@
             // 
             // mainMenu
             // 
-            mainMenu.Items.AddRange(new ToolStripItem[] { menuFile, menuMasters, menuTransactions, menuReports, menuHelp });
+            mainMenu.Items.AddRange(new ToolStripItem[] { menuFile, menuHelp });
             mainMenu.Location = new Point(0, 0);
             mainMenu.Name = "mainMenu";
             mainMenu.Size = new Size(1164, 24);
@@ -92,69 +83,9 @@
             menuFileExit.Text = "E&xit";
             menuFileExit.Click += menuFileExit_Click;
             // 
-            // menuMasters
-            // 
-            menuMasters.DropDownItems.AddRange(new ToolStripItem[] { menuMasterMembers });
-            menuMasters.Name = "menuMasters";
-            menuMasters.Size = new Size(60, 20);
-            menuMasters.Text = "&Masters";
-            // 
-            // menuMasterMembers
-            // 
-            menuMasterMembers.Name = "menuMasterMembers";
-            menuMasterMembers.Size = new Size(124, 22);
-            menuMasterMembers.Text = "Members";
-            menuMasterMembers.Click += menuMasterMembers_Click;
-            // 
-            // menuTransactions
-            // 
-            menuTransactions.DropDownItems.AddRange(new ToolStripItem[] { menuTransactionMaintenance, menuTransactionReceipts, incomeExpensesFundTransferToolStripMenuItem });
-            menuTransactions.ImageTransparentColor = Color.White;
-            menuTransactions.Name = "menuTransactions";
-            menuTransactions.Size = new Size(85, 20);
-            menuTransactions.Text = "&Transactions";
-            // 
-            // menuTransactionMaintenance
-            // 
-            menuTransactionMaintenance.Name = "menuTransactionMaintenance";
-            menuTransactionMaintenance.Size = new Size(255, 22);
-            menuTransactionMaintenance.Text = "Maintenance";
-            // 
-            // menuTransactionReceipts
-            // 
-            menuTransactionReceipts.Name = "menuTransactionReceipts";
-            menuTransactionReceipts.Size = new Size(255, 22);
-            menuTransactionReceipts.Text = "Receipts";
-            // 
-            // incomeExpensesFundTransferToolStripMenuItem
-            // 
-            incomeExpensesFundTransferToolStripMenuItem.Name = "incomeExpensesFundTransferToolStripMenuItem";
-            incomeExpensesFundTransferToolStripMenuItem.Size = new Size(255, 22);
-            incomeExpensesFundTransferToolStripMenuItem.Text = "Income - Expenses - Fund Transfer";
-            incomeExpensesFundTransferToolStripMenuItem.Click += incomeExpensesFundTransferToolStripMenuItem_Click;
-            // 
-            // menuReports
-            // 
-            menuReports.DropDownItems.AddRange(new ToolStripItem[] { menuReportsMemberStatement, menuReportsLedgerStatement });
-            menuReports.Name = "menuReports";
-            menuReports.Size = new Size(59, 20);
-            menuReports.Text = "&Reports";
-            // 
-            // menuReportsMemberStatement
-            // 
-            menuReportsMemberStatement.Name = "menuReportsMemberStatement";
-            menuReportsMemberStatement.Size = new Size(176, 22);
-            menuReportsMemberStatement.Text = "Member Statement";
-            // 
-            // menuReportsLedgerStatement
-            // 
-            menuReportsLedgerStatement.Name = "menuReportsLedgerStatement";
-            menuReportsLedgerStatement.Size = new Size(176, 22);
-            menuReportsLedgerStatement.Text = "Ledger Statement";
-            // 
             // menuHelp
             // 
-            menuHelp.DropDownItems.AddRange(new ToolStripItem[] { menuHelpAbout, carCardToolStripMenuItem });
+            menuHelp.DropDownItems.AddRange(new ToolStripItem[] { menuHelpAbout });
             menuHelp.Name = "menuHelp";
             menuHelp.Size = new Size(44, 20);
             menuHelp.Text = "&Help";
@@ -162,19 +93,13 @@
             // menuHelpAbout
             // 
             menuHelpAbout.Name = "menuHelpAbout";
-            menuHelpAbout.Size = new Size(116, 22);
+            menuHelpAbout.Size = new Size(107, 22);
             menuHelpAbout.Text = "&About";
-            // 
-            // carCardToolStripMenuItem
-            // 
-            carCardToolStripMenuItem.Name = "carCardToolStripMenuItem";
-            carCardToolStripMenuItem.Size = new Size(116, 22);
-            carCardToolStripMenuItem.Text = "car card";
-            carCardToolStripMenuItem.Click += carCardToolStripMenuItem_Click;
+            menuHelpAbout.Click += menuHelpAbout_Click;
             // 
             // mainToolStrip
             // 
-            mainToolStrip.Items.AddRange(new ToolStripItem[] { btnAddGuest, toolStripButton1, btnMembers, btnReceipt, btnTransactions, btnBookNow, btnReports, btnChangePassword });
+            mainToolStrip.Items.AddRange(new ToolStripItem[] { btnAddGuest, toolStripButton1, btnMembers, btnReceipt, btnTransactions, btnBookNow, btnReports, btnHistory, btnChangePassword });
             mainToolStrip.Location = new Point(0, 24);
             mainToolStrip.Name = "mainToolStrip";
             mainToolStrip.Size = new Size(1164, 57);
@@ -192,6 +117,18 @@
             btnAddGuest.Text = "toolStripButton1";
             btnAddGuest.ToolTipText = "Add Guest Information";
             btnAddGuest.Click += btnAddGuest_Click;
+            // 
+            // toolStripButton1
+            // 
+            toolStripButton1.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            toolStripButton1.Image = Properties.Resources.Mobile_1;
+            toolStripButton1.ImageScaling = ToolStripItemImageScaling.None;
+            toolStripButton1.ImageTransparentColor = Color.Magenta;
+            toolStripButton1.Name = "toolStripButton1";
+            toolStripButton1.Size = new Size(54, 54);
+            toolStripButton1.Text = "ID Card Upload";
+            toolStripButton1.TextAlign = ContentAlignment.TopRight;
+            toolStripButton1.Click += toolStripButton1_Click;
             // 
             // btnMembers
             // 
@@ -263,18 +200,6 @@
             btnChangePassword.Text = "Change Password";
             btnChangePassword.Click += btnChangePassword_Click;
             // 
-            // toolStripButton1
-            // 
-            toolStripButton1.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            toolStripButton1.Image = Properties.Resources.Mobile_1;
-            toolStripButton1.ImageScaling = ToolStripItemImageScaling.None;
-            toolStripButton1.ImageTransparentColor = Color.Magenta;
-            toolStripButton1.Name = "toolStripButton1";
-            toolStripButton1.Size = new Size(54, 54);
-            toolStripButton1.Text = "ID Card Upload";
-            toolStripButton1.TextAlign = ContentAlignment.TopRight;
-            toolStripButton1.Click += toolStripButton1_Click;
-            // 
             // mainStatusStrip
             // 
             mainStatusStrip.Items.AddRange(new ToolStripItem[] { lblStatus, statusLabelUserName });
@@ -295,6 +220,17 @@
             statusLabelUserName.Name = "statusLabelUserName";
             statusLabelUserName.Size = new Size(65, 17);
             statusLabelUserName.Text = "User Name";
+            // 
+            // btnHistory
+            // 
+            btnHistory.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            btnHistory.Image = Properties.Resources.History;
+            btnHistory.ImageScaling = ToolStripItemImageScaling.None;
+            btnHistory.ImageTransparentColor = Color.Magenta;
+            btnHistory.Name = "btnHistory";
+            btnHistory.Size = new Size(54, 54);
+            btnHistory.Text = "History";
+            btnHistory.Click += btnHistory_Click;
             // 
             // MainForm
             // 
@@ -333,27 +269,18 @@
         private ToolStripStatusLabel lblStatus;
         private ToolStripMenuItem menuFile;
         private ToolStripMenuItem menuFileExit;
-        private ToolStripMenuItem menuMasters;
-        private ToolStripMenuItem menuMasterMembers;
-        private ToolStripMenuItem menuTransactions;
-        private ToolStripMenuItem menuTransactionMaintenance;
-        private ToolStripMenuItem menuTransactionReceipts;
-        private ToolStripMenuItem menuReports;
-        private ToolStripMenuItem menuReportsMemberStatement;
-        private ToolStripMenuItem menuReportsLedgerStatement;
         private ToolStripMenuItem menuHelp;
         private ToolStripMenuItem menuHelpAbout;
         private ToolStripButton btnMembers;
         private ToolStripButton btnReceipt;
         private ToolStripButton btnReports;
         private ToolStripMenuItem logoutToolStripMenuItem;
-        private ToolStripMenuItem incomeExpensesFundTransferToolStripMenuItem;
         private ToolStripButton btnTransactions;
-        private ToolStripMenuItem carCardToolStripMenuItem;
         private ToolStripButton btnBookNow;
         private ToolStripButton btnAddGuest;
         private ToolStripButton btnChangePassword;
         private ToolStripStatusLabel statusLabelUserName;
         private ToolStripButton toolStripButton1;
+        private ToolStripButton btnHistory;
     }
 }

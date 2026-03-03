@@ -72,6 +72,7 @@
             label12 = new Label();
             label10 = new Label();
             label11 = new Label();
+            lblAvailableCount = new Label();
             panelTop.SuspendLayout();
             grpBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)gvBooking).BeginInit();
@@ -497,6 +498,16 @@
             label11.TabIndex = 13;
             label11.Text = "To Date:";
             // 
+            // lblAvailableCount
+            // 
+            lblAvailableCount.AutoSize = true;
+            lblAvailableCount.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblAvailableCount.Location = new Point(130, 96);
+            lblAvailableCount.Name = "lblAvailableCount";
+            lblAvailableCount.Size = new Size(15, 17);
+            lblAvailableCount.TabIndex = 13;
+            lblAvailableCount.Text = "0";
+            // 
             // frmBookNow
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -512,6 +523,7 @@
             Controls.Add(txtDiscount);
             Controls.Add(label11);
             Controls.Add(label10);
+            Controls.Add(lblAvailableCount);
             Controls.Add(label18);
             Controls.Add(panelTop);
             Controls.Add(label12);
@@ -586,5 +598,6 @@
         private CheckBox chkISTaxInclusive;
         private Label lblGSTPercentage;
         private Label label12;
+        private Label lblAvailableCount;
     }
 }

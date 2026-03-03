@@ -14,11 +14,9 @@ namespace Hotel.Data
            : base(options)
         {
         }
-
         public AppDbContext()
         {
         }
-
         public DbSet<TblAddress> Addresses { get; set; } = null!;
         public DbSet<TblHotel> Hotels { get; set; } = null!;
         public DbSet<TblRoom> Rooms { get; set; } = null!;
@@ -37,6 +35,7 @@ namespace Hotel.Data
         public DbSet<TblTransactionSequence> TransactionSequences { get; set; } = null!;
         public DbSet<TblState> States { get; set; } = null!;
         public DbSet<TblCity> Cities { get; set; } = null!;
+        public DbSet<TblActivity> Activities { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

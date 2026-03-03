@@ -28,6 +28,7 @@ namespace Hotel.Forms
         List<ListboxItemAvailableRooms> availableRooms = new List<ListboxItemAvailableRooms>();
         private static int HotelID = 1; // Assuming hotel ID is 1 for this example;
         private static string HotelStateCode = "GJ";
+        private int _availableRoomCount = 0;
 
         [Browsable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -185,53 +186,69 @@ namespace Hotel.Forms
         }
         private List<ListboxItemAvailableRooms> GetAvailableRooms()
         {
-
             DateTime fromDate = dtpFromDateTime.Value.Date;
             DateTime toDate = dtpToDateTime.Value.Date;
             DateTime yesterday = fromDate.AddDays(-1);
 
-            var availableRooms = context.Rooms
-                .Where(r => r.HotelID == HotelID)
-                .Where(r => r.IsAvailable || (!r.IsAvailable && fromDate.Date > DateTime.UtcNow.Date))
-                .Where(r =>
-                    !r.RoomBookings.Any(rb =>
-                        rb.Status == BookingStatus.Booked &&
-                        rb.NightStay == true &&
-                        rb.Date.HasValue &&
-                        rb.Date.Value.Date >= fromDate &&
-                        rb.Date.Value.Date < toDate
-                    )
-                )
-                .Select(x => new
+            var data = (
+                from r in context.Rooms
+
+                join rb in context.RoomBookings
+                    .Where(b => b.Date >= yesterday && b.Date < toDate)
+                    on r.ID equals rb.RoomID into roomBookings
+
+                select new
                 {
-                    x.ID,
-                    x.RoomNumber,
-                    x.RoomTitle,
-                    IsCheckingOutOnArrival = x.RoomBookings.Any(b =>
-                                            b.Status == BookingStatus.Booked &&
-                                            b.NightStay == true &&
-                                            b.Date.HasValue &&
-                                            b.Date.Value.Date == yesterday)
-                }).ToList() // Bring to memory to build the DisplayName string
-                .Select(x => new ListboxItemAvailableRooms
-                {
-                    ID = x.ID,
-                    RoomNumber = x.RoomNumber!,
-                    IsCheckoutToday = x.IsCheckingOutOnArrival,
-                    // If checking out today, add a clear visual indicator like (CO) or ⟳
-                    DisplayName = x.IsCheckingOutOnArrival
-                        ? $"{x.RoomNumber} - {x.RoomTitle} [✔]"
-                        : $"{x.RoomNumber} - {x.RoomTitle}"
-                })
-                .ToList();
+                    Room = r,
+                    Bookings = roomBookings
+                        .Select(b => b.Date!.Value.Date)
+                        .ToList()
+                }
+            ).ToList();
+
+            var result = data
+                    .Select(x =>
+                    {
+                        bool bookedInRange = x.Bookings
+                            .Any(d => d >= fromDate && d < toDate);
+
+                        bool bookedYesterday = x.Bookings
+                            .Any(d => d == yesterday);
+
+                        bool bookedToday = x.Bookings
+                            .Any(d => d == fromDate);
+
+                        bool isCheckoutToday = bookedYesterday && !bookedToday;
+
+                        return new
+                        {
+                            x.Room,
+                            bookedInRange,
+                            isCheckoutToday
+                        };
+                    })
+                    .Where(x => !x.bookedInRange) // Only available rooms
+                    .Select(x => new ListboxItemAvailableRooms
+                    {
+                        ID = x.Room.ID,
+                        RoomNumber = x.Room.RoomNumber!,
+                        IsCheckoutToday = x.isCheckoutToday,
+                        DisplayName = x.isCheckoutToday
+                            ? $"{x.Room.RoomNumber} - {x.Room.RoomTitle} [✔]"
+                            : $"{x.Room.RoomNumber} - {x.Room.RoomTitle}"
+                    })
+                    .ToList();
+
 
             listBox1.DataSource = null;
-            listBox1.DataSource = availableRooms;
+            listBox1.DataSource = result; //availableRooms;
             listBox1.DisplayMember = "DisplayName";
             listBox1.ValueMember = "ID";
             listBox1.SelectedIndex = -1;
+            _availableRoomCount = listBox1.Items.Count;
+            lblAvailableCount.Text = _availableRoomCount.ToString();
 
-            return availableRooms;
+            return result;
         }
         private void btnGo_Click(object sender, EventArgs e)
         {

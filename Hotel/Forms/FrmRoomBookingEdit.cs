@@ -1,9 +1,11 @@
 ﻿using Hotel.Common;
 using Hotel.Dtos;
+using Hotel.Models;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using System.Data;
 using System.ComponentModel;
+using System.Data;
 
 namespace Hotel.Forms
 {
@@ -247,6 +249,19 @@ namespace Hotel.Forms
                     cmd.ExecuteNonQuery();
                 }
 
+                TblActivity history = new TblActivity
+                {
+                    ActivityName = "Room Booking Update",
+                    ActivityDescription = $"Room No: {BookingData.RoomNumber}. Booking Edited by user {AppSession.CurrentUser?.UserName}",
+                    ActivityTime = DateTime.UtcNow.GetIndianTime(),
+                    LoginUserName = $"{AppSession.CurrentUser?.UserName}",
+                    LoginUserID = AppSession.CurrentUser?.ID,
+                    Operation = "Edit",
+                    TableName = "TblRoombooking",
+                    TableId = _booking.ID
+                };
+                AddHistory(history);
+
                 MessageBox.Show("Save Successfully", "Success",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
 
@@ -266,6 +281,74 @@ namespace Hotel.Forms
                     "Error",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
+            }
+        }
+
+        private void AddHistory(TblActivity activity)
+        {
+            if (activity == null)
+                throw new ArgumentNullException(nameof(activity));
+
+            const string query = @"
+        INSERT INTO Activities
+        (
+            ActivityName,
+            ActivityDescription,
+            Operation,
+            LoginUserID,
+            LoginUserName,
+            ActivityTime,
+            TableName,
+            TableId,
+            Notes
+        )
+        VALUES
+        (
+            @ActivityName,
+            @ActivityDescription,
+            @Operation,
+            @LoginUserID,
+            @LoginUserName,
+            @ActivityTime,
+            @TableName,
+            @TableId,
+            @Notes
+        );";
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(_connectionString))
+                using (SqlCommand cmd = new SqlCommand(query, con))
+                {
+                    cmd.Parameters.AddWithValue("@ActivityName", activity.ActivityName);
+                    cmd.Parameters.AddWithValue("@ActivityDescription", activity.ActivityDescription);
+                    cmd.Parameters.AddWithValue("@Operation", activity.Operation);
+
+                    cmd.Parameters.AddWithValue("@LoginUserID",
+                        (object?)activity.LoginUserID ?? DBNull.Value);
+
+                    cmd.Parameters.AddWithValue("@LoginUserName",
+                        (object?)activity.LoginUserName ?? DBNull.Value);
+
+                    cmd.Parameters.AddWithValue("@ActivityTime", activity.ActivityTime);
+
+                    cmd.Parameters.AddWithValue("@TableName",
+                        (object?)activity.TableName ?? DBNull.Value);
+
+                    cmd.Parameters.AddWithValue("@TableId",
+                        (object?)activity.TableId ?? DBNull.Value);
+
+                    cmd.Parameters.AddWithValue("@Notes",
+                        (object?)activity.Notes ?? DBNull.Value);
+
+                    con.Open();
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            catch (Exception)
+            {
+                // Log this somewhere (file / logger)
+                //throw new Exception("Error while inserting activity history.", ex);
             }
         }
 
@@ -376,6 +459,20 @@ namespace Hotel.Forms
 
                             cmd.ExecuteNonQuery();
                         }
+
+                        TblActivity history = new TblActivity
+                        {
+                            ActivityName = "Room Booking Add",
+                            ActivityDescription = $"Room No: {BookingData.RoomNumber}, Date: {date:dd/MM/yyyy}, Booking Added into Invoice No: {_booking.InvoiceNumber}  by user {AppSession.CurrentUser?.UserName}",
+                            ActivityTime = DateTime.UtcNow.GetIndianTime(),
+                            LoginUserName = $"{AppSession.CurrentUser?.UserName}",
+                            LoginUserID = AppSession.CurrentUser?.ID,
+                            Operation = "Add",
+                            TableName = "TblRoombooking",
+                            TableId = _booking.ID
+                        };
+                        AddHistory(history);
+
                     }
                 }
 

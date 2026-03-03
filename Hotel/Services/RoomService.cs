@@ -1,4 +1,5 @@
-﻿using Hotel.Data;
+﻿using Hotel.Common;
+using Hotel.Data;
 using Hotel.Dtos;
 using Hotel.Models;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +34,7 @@ namespace Hotel.Services
             using var context = await factory.CreateDbContextAsync();
             await bookingMasterRepo.AddAsync(bookingDto.BookingMaster);
             var bookingMasterID = bookingDto.BookingMaster.ID;
+            var invoiceNumber = bookingDto.BookingMaster.InvoiceNumber;
 
             foreach (var roomBooking in bookingDto.RoomBookings)
             {
@@ -48,6 +50,21 @@ namespace Hotel.Services
                     await context.SaveChangesAsync();
                 }
             }
+
+            context.Activities.Add(new TblActivity
+            {
+                ActivityName = "New Booking Added",
+                ActivityDescription = $"New Invoice No: {invoiceNumber} Created by {AppSession.CurrentUser?.UserName}",
+                Operation = "Create",
+
+                LoginUserID = AppSession.CurrentUser?.ID,
+                LoginUserName = AppSession.CurrentUser?.UserName,
+                ActivityTime = DateTime.UtcNow.GetIndianTime(),
+
+                TableName = "TblBookingMaster",
+                TableId = bookingMasterID
+            });
+            await context.SaveChangesAsync();
 
             return bookingDto;
         }

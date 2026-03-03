@@ -278,6 +278,23 @@ namespace Hotel.UserControls
                         lastNightEntry.IsCleaned = false;
 
                         db.SaveChanges();
+
+                        var roomBooking = db.RoomBookings.AsNoTracking().Include(x => x.Room).FirstOrDefault(x => x.ID == lastNightEntry.RoomID);
+                        db.Activities.Add(new TblActivity
+                        {
+                            ActivityName = "Checkout",
+                            ActivityDescription = $"Room No.: {roomBooking?.Room?.RoomNumber} check-out by {AppSession.CurrentUser?.UserName}",
+                            Operation = "Create",
+
+                            LoginUserID = AppSession.CurrentUser?.ID,
+                            LoginUserName = AppSession.CurrentUser?.UserName,
+                            ActivityTime = DateTime.UtcNow.GetIndianTime(),
+
+                            TableName = "TblRoombooking",
+                            TableId = lastNightEntry.ID
+                        });
+                        db.SaveChanges();
+
                     }
                 }
                 OnStatusChanged?.Invoke(this, EventArgs.Empty);
@@ -318,6 +335,22 @@ namespace Hotel.UserControls
                     if (dirtyRecord != null)
                     {
                         dirtyRecord.IsCleaned = true;
+                        db.SaveChanges();
+
+                        var roomBooking = db.RoomBookings.AsNoTracking().Include(x => x.Room).FirstOrDefault(x => x.ID == dirtyRecord.RoomID);
+                        db.Activities.Add(new TblActivity
+                        {
+                            ActivityName = "Room Cleaning",
+                            ActivityDescription = $"Room No.: {roomBooking?.Room?.RoomNumber} Cleanning done. Approved by {AppSession.CurrentUser?.UserName}",
+                            Operation = "Create",
+
+                            LoginUserID = AppSession.CurrentUser?.ID,
+                            LoginUserName = AppSession.CurrentUser?.UserName,
+                            ActivityTime = DateTime.UtcNow.GetIndianTime(),
+
+                            TableName = "TblRoombooking",
+                            TableId = dirtyRecord.ID
+                        });
                         db.SaveChanges();
                     }
                 }

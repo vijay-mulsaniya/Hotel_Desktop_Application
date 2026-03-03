@@ -712,7 +712,6 @@ namespace Hotel.Forms
                 if (lockAcquired) _lock.Release();
             }
         }
-
         private bool ValidateSaveButton()
         {
             return decimal.TryParse(txtAmount.Text, out decimal amount)
@@ -720,7 +719,6 @@ namespace Hotel.Forms
                     && cmbRoomNumber.SelectedValue != null
                     && cmbPaymentMethod.SelectedIndex >= 0;
         }
-
         private void btnShowInvoice_Click(object sender, EventArgs e)
         {
             if (invoiceModel == null)
@@ -746,6 +744,7 @@ namespace Hotel.Forms
                 using (var frm = new FrmRoomBookingEdit())
                 {
                     frm.BookingData = row;
+                    frm.BookingData.InvoiceNumber = row.InvoiceNumber;
                     frm.StartPosition = FormStartPosition.CenterParent;
 
                     if (frm.ShowDialog() == DialogResult.OK)
@@ -912,6 +911,23 @@ namespace Hotel.Forms
 
                         db.SaveChanges();
                         await RefreshMainGridAsync();
+
+                        var roomBooking = db.RoomBookings.AsNoTracking().Include(x => x.Room).FirstOrDefault(x => x.ID == lastNightEntry.RoomID);
+                        db.Activities.Add(new TblActivity
+                        {
+                            ActivityName = "Checkout",
+                            ActivityDescription = $"Room No.: {roomBooking?.Room?.RoomNumber} check-out by {AppSession.CurrentUser?.UserName}",
+                            Operation = "Create",
+
+                            LoginUserID = AppSession.CurrentUser?.ID,
+                            LoginUserName = AppSession.CurrentUser?.UserName,
+                            ActivityTime = DateTime.UtcNow.GetIndianTime(),
+
+                            TableName = "TblRoombooking",
+                            TableId = lastNightEntry.ID,
+                            Notes = "checkout from payment screen"
+                        });
+                        db.SaveChanges();
                     }
                 }
             }
