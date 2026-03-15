@@ -2,9 +2,7 @@
 using Hotel.Data;
 using Hotel.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualBasic.ApplicationServices;
 using System.Data;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace Hotel.Forms
 {

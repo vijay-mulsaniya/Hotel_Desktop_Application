@@ -73,9 +73,11 @@
             label10 = new Label();
             label11 = new Label();
             lblAvailableCount = new Label();
+            pnlBody = new Panel();
             panelTop.SuspendLayout();
             grpBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)gvBooking).BeginInit();
+            pnlBody.SuspendLayout();
             SuspendLayout();
             // 
             // panelTop
@@ -85,7 +87,7 @@
             panelTop.Dock = DockStyle.Top;
             panelTop.Location = new Point(0, 0);
             panelTop.Name = "panelTop";
-            panelTop.Size = new Size(1673, 58);
+            panelTop.Size = new Size(1249, 58);
             panelTop.TabIndex = 0;
             // 
             // label1
@@ -101,7 +103,7 @@
             // label18
             // 
             label18.AutoSize = true;
-            label18.Location = new Point(29, 96);
+            label18.Location = new Point(23, 32);
             label18.Name = "label18";
             label18.Size = new Size(95, 15);
             label18.TabIndex = 13;
@@ -164,7 +166,7 @@
             // dtpFromDateTime
             // 
             dtpFromDateTime.Format = DateTimePickerFormat.Custom;
-            dtpFromDateTime.Location = new Point(287, 75);
+            dtpFromDateTime.Location = new Point(281, 11);
             dtpFromDateTime.Name = "dtpFromDateTime";
             dtpFromDateTime.Size = new Size(200, 23);
             dtpFromDateTime.TabIndex = 1;
@@ -173,7 +175,7 @@
             // dtpToDateTime
             // 
             dtpToDateTime.Format = DateTimePickerFormat.Custom;
-            dtpToDateTime.Location = new Point(588, 75);
+            dtpToDateTime.Location = new Point(582, 11);
             dtpToDateTime.Name = "dtpToDateTime";
             dtpToDateTime.Size = new Size(200, 23);
             dtpToDateTime.TabIndex = 2;
@@ -191,7 +193,7 @@
             // listBox1
             // 
             listBox1.FormattingEnabled = true;
-            listBox1.Location = new Point(29, 118);
+            listBox1.Location = new Point(23, 54);
             listBox1.Name = "listBox1";
             listBox1.SelectionMode = SelectionMode.MultiSimple;
             listBox1.Size = new Size(179, 589);
@@ -200,7 +202,7 @@
             // 
             // btnGo
             // 
-            btnGo.Location = new Point(804, 75);
+            btnGo.Location = new Point(798, 11);
             btnGo.Name = "btnGo";
             btnGo.Size = new Size(97, 23);
             btnGo.TabIndex = 3;
@@ -240,7 +242,7 @@
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(925, 512);
+            label3.Location = new Point(919, 448);
             label3.Name = "label3";
             label3.Size = new Size(80, 15);
             label3.TabIndex = 18;
@@ -249,7 +251,7 @@
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(951, 540);
+            label4.Location = new Point(945, 476);
             label4.Name = "label4";
             label4.Size = new Size(54, 15);
             label4.TabIndex = 19;
@@ -257,7 +259,7 @@
             // 
             // txtDiscount
             // 
-            txtDiscount.Location = new Point(1011, 536);
+            txtDiscount.Location = new Point(1005, 472);
             txtDiscount.Name = "txtDiscount";
             txtDiscount.Size = new Size(92, 23);
             txtDiscount.TabIndex = 11;
@@ -268,7 +270,7 @@
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new Point(972, 568);
+            label5.Location = new Point(966, 504);
             label5.Name = "label5";
             label5.Size = new Size(33, 15);
             label5.TabIndex = 20;
@@ -277,7 +279,7 @@
             // label6
             // 
             label6.AutoSize = true;
-            label6.Location = new Point(971, 596);
+            label6.Location = new Point(965, 532);
             label6.Name = "label6";
             label6.Size = new Size(34, 15);
             label6.TabIndex = 21;
@@ -286,7 +288,7 @@
             // label7
             // 
             label7.AutoSize = true;
-            label7.Location = new Point(969, 624);
+            label7.Location = new Point(963, 560);
             label7.Name = "label7";
             label7.Size = new Size(36, 15);
             label7.TabIndex = 22;
@@ -295,7 +297,7 @@
             // label8
             // 
             label8.AutoSize = true;
-            label8.Location = new Point(974, 652);
+            label8.Location = new Point(968, 588);
             label8.Name = "label8";
             label8.Size = new Size(31, 15);
             label8.TabIndex = 23;
@@ -304,7 +306,7 @@
             // label9
             // 
             label9.AutoSize = true;
-            label9.Location = new Point(944, 680);
+            label9.Location = new Point(938, 616);
             label9.Name = "label9";
             label9.Size = new Size(61, 15);
             label9.TabIndex = 24;
@@ -313,7 +315,7 @@
             // lblTotalAmount
             // 
             lblTotalAmount.AutoSize = true;
-            lblTotalAmount.Location = new Point(1011, 508);
+            lblTotalAmount.Location = new Point(1005, 444);
             lblTotalAmount.Name = "lblTotalAmount";
             lblTotalAmount.Size = new Size(13, 15);
             lblTotalAmount.TabIndex = 25;
@@ -323,7 +325,7 @@
             // lblTotal
             // 
             lblTotal.AutoSize = true;
-            lblTotal.Location = new Point(1011, 570);
+            lblTotal.Location = new Point(1005, 506);
             lblTotal.Name = "lblTotal";
             lblTotal.Size = new Size(13, 15);
             lblTotal.TabIndex = 26;
@@ -333,7 +335,7 @@
             // lblSGST
             // 
             lblSGST.AutoSize = true;
-            lblSGST.Location = new Point(1011, 597);
+            lblSGST.Location = new Point(1005, 533);
             lblSGST.Name = "lblSGST";
             lblSGST.Size = new Size(13, 15);
             lblSGST.TabIndex = 27;
@@ -343,7 +345,7 @@
             // lblCGST
             // 
             lblCGST.AutoSize = true;
-            lblCGST.Location = new Point(1011, 624);
+            lblCGST.Location = new Point(1005, 560);
             lblCGST.Name = "lblCGST";
             lblCGST.Size = new Size(13, 15);
             lblCGST.TabIndex = 28;
@@ -353,7 +355,7 @@
             // lblIGST
             // 
             lblIGST.AutoSize = true;
-            lblIGST.Location = new Point(1011, 651);
+            lblIGST.Location = new Point(1005, 587);
             lblIGST.Name = "lblIGST";
             lblIGST.Size = new Size(13, 15);
             lblIGST.TabIndex = 29;
@@ -364,7 +366,7 @@
             // 
             lblFinalTotal.AutoSize = true;
             lblFinalTotal.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblFinalTotal.Location = new Point(1011, 678);
+            lblFinalTotal.Location = new Point(1005, 614);
             lblFinalTotal.Name = "lblFinalTotal";
             lblFinalTotal.Size = new Size(15, 17);
             lblFinalTotal.TabIndex = 30;
@@ -373,7 +375,7 @@
             // 
             // btnSave
             // 
-            btnSave.Location = new Point(795, 676);
+            btnSave.Location = new Point(789, 612);
             btnSave.Name = "btnSave";
             btnSave.Size = new Size(133, 23);
             btnSave.TabIndex = 31;
@@ -383,7 +385,7 @@
             // 
             // btnCancel
             // 
-            btnCancel.Location = new Point(651, 676);
+            btnCancel.Location = new Point(645, 612);
             btnCancel.Name = "btnCancel";
             btnCancel.Size = new Size(133, 23);
             btnCancel.TabIndex = 31;
@@ -407,7 +409,7 @@
             grpBox.Controls.Add(label22);
             grpBox.Controls.Add(label2);
             grpBox.Controls.Add(label21);
-            grpBox.Location = new Point(214, 108);
+            grpBox.Location = new Point(208, 44);
             grpBox.Name = "grpBox";
             grpBox.Size = new Size(894, 386);
             grpBox.TabIndex = 32;
@@ -465,7 +467,7 @@
             // lblGSTPercentage
             // 
             lblGSTPercentage.AutoSize = true;
-            lblGSTPercentage.Location = new Point(844, 512);
+            lblGSTPercentage.Location = new Point(838, 448);
             lblGSTPercentage.Name = "lblGSTPercentage";
             lblGSTPercentage.Size = new Size(13, 15);
             lblGSTPercentage.TabIndex = 18;
@@ -474,7 +476,7 @@
             // label12
             // 
             label12.AutoSize = true;
-            label12.Location = new Point(745, 512);
+            label12.Location = new Point(739, 448);
             label12.Name = "label12";
             label12.Size = new Size(93, 15);
             label12.TabIndex = 18;
@@ -483,7 +485,7 @@
             // label10
             // 
             label10.AutoSize = true;
-            label10.Location = new Point(216, 79);
+            label10.Location = new Point(210, 15);
             label10.Name = "label10";
             label10.Size = new Size(65, 15);
             label10.TabIndex = 13;
@@ -492,7 +494,7 @@
             // label11
             // 
             label11.AutoSize = true;
-            label11.Location = new Point(532, 79);
+            label11.Location = new Point(526, 15);
             label11.Name = "label11";
             label11.Size = new Size(50, 15);
             label11.TabIndex = 13;
@@ -502,45 +504,56 @@
             // 
             lblAvailableCount.AutoSize = true;
             lblAvailableCount.Font = new Font("Segoe UI", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblAvailableCount.Location = new Point(130, 96);
+            lblAvailableCount.Location = new Point(124, 32);
             lblAvailableCount.Name = "lblAvailableCount";
             lblAvailableCount.Size = new Size(15, 17);
             lblAvailableCount.TabIndex = 13;
             lblAvailableCount.Text = "0";
             // 
+            // pnlBody
+            // 
+            pnlBody.AutoScroll = true;
+            pnlBody.AutoSize = true;
+            pnlBody.Controls.Add(grpBox);
+            pnlBody.Controls.Add(btnGo);
+            pnlBody.Controls.Add(listBox1);
+            pnlBody.Controls.Add(btnCancel);
+            pnlBody.Controls.Add(dtpToDateTime);
+            pnlBody.Controls.Add(btnSave);
+            pnlBody.Controls.Add(dtpFromDateTime);
+            pnlBody.Controls.Add(txtDiscount);
+            pnlBody.Controls.Add(label11);
+            pnlBody.Controls.Add(label10);
+            pnlBody.Controls.Add(lblAvailableCount);
+            pnlBody.Controls.Add(label18);
+            pnlBody.Controls.Add(label12);
+            pnlBody.Controls.Add(label3);
+            pnlBody.Controls.Add(lblGSTPercentage);
+            pnlBody.Controls.Add(lblTotalAmount);
+            pnlBody.Controls.Add(lblTotal);
+            pnlBody.Controls.Add(lblSGST);
+            pnlBody.Controls.Add(label8);
+            pnlBody.Controls.Add(lblCGST);
+            pnlBody.Controls.Add(label7);
+            pnlBody.Controls.Add(lblIGST);
+            pnlBody.Controls.Add(label6);
+            pnlBody.Controls.Add(lblFinalTotal);
+            pnlBody.Controls.Add(label5);
+            pnlBody.Controls.Add(label9);
+            pnlBody.Controls.Add(label4);
+            pnlBody.Dock = DockStyle.Fill;
+            pnlBody.Location = new Point(0, 58);
+            pnlBody.Name = "pnlBody";
+            pnlBody.Size = new Size(1249, 689);
+            pnlBody.TabIndex = 33;
+            // 
             // frmBookNow
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1673, 747);
-            Controls.Add(grpBox);
-            Controls.Add(btnGo);
-            Controls.Add(listBox1);
-            Controls.Add(btnCancel);
-            Controls.Add(dtpToDateTime);
-            Controls.Add(btnSave);
-            Controls.Add(dtpFromDateTime);
-            Controls.Add(txtDiscount);
-            Controls.Add(label11);
-            Controls.Add(label10);
-            Controls.Add(lblAvailableCount);
-            Controls.Add(label18);
+            ClientSize = new Size(1249, 747);
+            Controls.Add(pnlBody);
             Controls.Add(panelTop);
-            Controls.Add(label12);
-            Controls.Add(label3);
-            Controls.Add(lblGSTPercentage);
-            Controls.Add(lblTotalAmount);
-            Controls.Add(lblTotal);
-            Controls.Add(lblSGST);
-            Controls.Add(label8);
-            Controls.Add(lblCGST);
-            Controls.Add(label7);
-            Controls.Add(lblIGST);
-            Controls.Add(label6);
-            Controls.Add(lblFinalTotal);
-            Controls.Add(label5);
-            Controls.Add(label9);
-            Controls.Add(label4);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "frmBookNow";
             Text = "frmBookNow";
@@ -550,6 +563,8 @@
             grpBox.ResumeLayout(false);
             grpBox.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)gvBooking).EndInit();
+            pnlBody.ResumeLayout(false);
+            pnlBody.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -599,5 +614,6 @@
         private Label lblGSTPercentage;
         private Label label12;
         private Label lblAvailableCount;
+        private Panel pnlBody;
     }
 }

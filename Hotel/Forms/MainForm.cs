@@ -1,11 +1,5 @@
 using Hotel.Common;
-using Hotel.Data;
-using Hotel.Models;
-using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.DependencyInjection;
-using OfficeOpenXml.Drawing.Style.Coloring;
-using System.Data;
-using System.Windows.Forms;
 
 
 namespace Hotel.Forms
