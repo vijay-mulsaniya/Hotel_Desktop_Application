@@ -73,6 +73,20 @@ internal static class Program
     static IHostBuilder CreateHostBuilder()
     {
         return Host.CreateDefaultBuilder()
+            .ConfigureAppConfiguration((hostingContext, config) =>
+            {
+                config.Sources.Clear(); 
+
+                config.SetBasePath(AppContext.BaseDirectory); 
+
+                config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
+
+                #if DEBUG
+                config.AddJsonFile("appsettings.Development.json", optional: true);
+                #endif
+
+                config.AddEnvironmentVariables();
+            })
             .ConfigureServices((context, services) =>
             {
                 var connectionString = context.Configuration.GetConnectionString("DefaultConnection");

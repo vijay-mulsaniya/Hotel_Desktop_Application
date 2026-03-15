@@ -33,7 +33,6 @@ namespace Hotel.Services
         //private readonly AppDbContext context;
         private static int HotelID = 1;
         private readonly IDbContextFactory<AppDbContext> factory;
-
         public PaymentService(IDbContextFactory<AppDbContext> factory)
         {
             this.factory = factory;
@@ -427,7 +426,7 @@ namespace Hotel.Services
             context.Activities.Add(new TblActivity
             {
                 ActivityName = "Room Booking Delete",
-                ActivityDescription = $"Room No: {roomNumber} - {roomTitle}, Booking Date: {booking.Date.Value.Date:dd/MM/yyyy}, Booking deleted by {AppSession.CurrentUser?.UserName}",
+                ActivityDescription = $"Room No: {roomNumber} - {roomTitle}, Booking Date: {booking?.Date!.Value.Date:dd/MM/yyyy}, Booking deleted by {AppSession.CurrentUser?.UserName}",
                 Operation = "Delete",
 
                 LoginUserID = AppSession.CurrentUser?.ID,
@@ -435,7 +434,7 @@ namespace Hotel.Services
                 ActivityTime = DateTime.UtcNow.GetIndianTime(),
 
                 TableName = "TblRoomBooking",
-                TableId = booking.ID
+                TableId = booking?.ID
             });
             await context.SaveChangesAsync();
 

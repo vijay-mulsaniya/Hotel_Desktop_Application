@@ -18,7 +18,7 @@ namespace Hotel.Forms
         private string selectedFilePath = string.Empty;
         private string uploadsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "GuestDocs");
         private FilterInfoCollection? videoDevices;
-        private VideoCaptureDevice? videoSource;
+       
         public frmGuest(IRepository<TblGuest> guestRepository, IRepository<TblAddress> addressRepository, IRepository<TblCity> cityRepository)
         {
             InitializeComponent();
@@ -191,7 +191,7 @@ namespace Hotel.Forms
                     fillGuestGrid();
                     MessageBox.Show("Deleted successfully.");
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     MessageBox.Show($"There is an invoce created for this guet.\nFirst delete the invoice\nThen try again");
                 }
