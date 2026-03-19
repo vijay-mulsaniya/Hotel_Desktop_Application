@@ -111,7 +111,6 @@ namespace Hotel.Forms
 
             flowLayoutPanel1.ResumeLayout();
         }
-
         private RoomStatusAllDto GetRooms(DateTime selectedDate)
         {
             var dateOnly = selectedDate.Date;
@@ -234,7 +233,6 @@ namespace Hotel.Forms
                     }).ToList()
             };
         }
-
         private string GetRoomTypeString(RoomType? type) => type switch
         {
             RoomType.Dormitory => "Dormitory",
@@ -244,43 +242,6 @@ namespace Hotel.Forms
             RoomType.Luxery => "Luxery",
             _ => "Unknown"
         };
-
-        private void AddRoom(RoomCard card)
-        {
-            if (!card.IsAvailable)
-            {
-                HotelRoom room = new HotelRoom();
-                room.RoomId = card.RoomId;
-                room.RoomNumber = card.RoomNumber;
-                room.RoomTitle = card.RoomTitle;
-                room.GuestName = card.GuestName;
-                room.TotalAmount = card.TotalAmount;
-                room.PaidAmount = card.PaidAmount;
-                room.PendingAmount = card.PendingAmount;
-                room.NightCount = card.NightCount;
-                room.TotalAmount = card.TotalAmount;
-                room.CheckinDate = card.CheckInDate;
-                room.CheckoutDate = card.CheckOutDate;
-                room.PersonCount = card.PersonCount;
-                room.BookingMasterId = card.BookingMasterId;
-                room.IsCheckOutCard = card.IsCheckOutCard;
-                flowLayoutPanel1.Controls.Add(room);
-            }
-            else
-            {
-                HotelRoomAvailable room = new HotelRoomAvailable(serviceProvider, mainForm);
-                room.RoomId = card.RoomId;
-                room.SelectedCheckInDate = lblAsOn.Text == "Today" ? DateTime.UtcNow.GetIndianTime() : dtpDate.Value.Date.AddHours(9);
-                room.RoomNumber = card.RoomNumber;
-                room.RoomTitle = card.RoomTitle;
-                room.Capacity = card.Capacity;
-                room.ChargesPerNight = card.PricePerNight;
-                room.BackColor = setBackground(card.RoomTitle);
-                room.IsCheckOutCard = card.IsCheckOutCard;
-                flowLayoutPanel1.Controls.Add(room);
-            }
-        }
-
         private Color setBackground(string title)
         {
             return title switch
@@ -291,12 +252,10 @@ namespace Hotel.Forms
                 _ => Color.White
             };
         }
-
         private void btnRefresh_Click(object sender, EventArgs e)
         {
             LoadRooms();
         }
-
         private void timer1_Tick(object sender, EventArgs e)
         {
             LoadRooms();

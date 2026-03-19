@@ -367,7 +367,7 @@ namespace Hotel.Forms
             //else
             //    gstPercentage = 18;
 
-            if (isGstApplicable)  //FIX GST As per client demand.
+            if (isGstApplicable)  //5% FIX GST As per client demand.
                 gstPercentage = 5;
 
             // Get GST Amount
